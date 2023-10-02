@@ -58,11 +58,14 @@ public class MainActivity extends AppCompatActivity {
 
         SeekBar seekBar1 = findViewById(R.id.seekBar);
         SeekBar seekBar2 = findViewById(R.id.seekBar2);
-        TextView textView1 = findViewById(R.id.textView);
-        TextView textView2 = findViewById(R.id.textView2);
+        TextView leftPriceBorder = findViewById(R.id.leftPriceBorder);
+        TextView rightPriceBorder = findViewById(R.id.rightPriceBorder);
+
+        leftPriceBorder.setText(String.valueOf(seekBar1.getProgress()));
+        rightPriceBorder.setText(String.valueOf(seekBar2.getProgress()));
 
         SeekBarListener seekBarListener = new SeekBarListener();
-        seekBarListener.link(seekBar1, seekBar2, textView1, textView2);
+        seekBarListener.link(seekBar1, seekBar2, leftPriceBorder, rightPriceBorder);
 
         }
 
@@ -88,4 +91,3 @@ public class MainActivity extends AppCompatActivity {
         textView.setText(res);
     }
 }
-
