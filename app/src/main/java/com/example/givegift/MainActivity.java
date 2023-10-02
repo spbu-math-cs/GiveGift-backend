@@ -79,11 +79,13 @@ public class MainActivity extends AppCompatActivity {
         String res = "";
 
         create(gifts);
+        int i = 1;
 
         for (String s:
              gifts) {
             if (Integer.parseInt(s.split(" ")[1]) >= min && Integer.parseInt(s.split(" ")[2]) <= max) {
-                res = res + s.split(" ")[0] + '\n';
+                res = res + i + ") " + s.split(" ")[0] + '\n';
+                i++;
             }
         }
 
