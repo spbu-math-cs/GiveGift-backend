@@ -33,12 +33,12 @@ def post(post_id):
 def create():
     if request.method == 'POST':
         title = request.form['title']
-        content = request.form['content']
+        description = request.form['content']
         if not title:
             flash('Title is required!')
         else:
             list_of_preferences.append(
-                {"id": len(list_of_preferences), "title": title, "description": content, "created": "NOW"}
+                {"id": len(list_of_preferences), "title": title, "description": description, "created": "NOW"}
             )
             return redirect(url_for('index'))
 
@@ -50,13 +50,12 @@ def edit(id):
     current_post = get_preference(id)
     if request.method == 'POST':
         title = request.form['title']
-        content = request.form['content']
-
+        description = request.form['content']
         if not title:
             flash('Title is required!')
         else:
             list_of_preferences[id] = {
-                "id": id, "title": title, "created": "NOW", "description": content
+                "id": id, "title": title, "created": "NOW", "description": description
             }
             return redirect(url_for('index'))
     return render_template('edit.html', post=current_post)
