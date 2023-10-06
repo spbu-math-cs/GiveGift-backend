@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
 from werkzeug.exceptions import abort
+from werkzeug.security import generate_password_hash
+import jwt # to add authorization
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'fkbvkfjbjfbldsovfmvbkfmbfkbkjhkgkkldksdlklfdlfkkprkppcpkfkpewp'
@@ -9,10 +11,43 @@ list_of_preferences = [
     {"id": 1, "title": "Microsoft", "created": "now", "description": "YES"}
 ]
 
+users = {
+    "USER_1": ["USER_1", generate_password_hash("ABCD"), list_of_preferences]
+}
+#check_password_hash(hash, "secret password")
+
+# some functions to work with DB
+
+
+def get_current_preference(preference_id: int, user = "USER_1"):
+    return users[user][2][preference_id]
+
+
+def get_list_of_preferences(user = "USER_1"):
+    return users[user][2]
+
+
+def append_to_list_of_preferences(title, description, user = "USER_1"):
+    return users[user][2].append(
+                {"id": len(list_of_preferences), "title": title, "description": description, "created": "NOW"}
+            )
+
+
+def set_to_list_of_preferences(preference_id, title, description, user = "USER_1"):
+    users[user][2][preference_id] = {
+                "id": preference_id, "title": title, "created": "NOW", "description": description
+            }
+
+
+def delete_preference(preference_id, user = "USER_1"):
+    del users[user][2][preference_id]
+
+
+# replace all to get a correct behavior
 
 def get_preference(preference_id):
     try:
-        current_preference = list_of_preferences[preference_id]
+        current_preference = get_current_preference(preference_id)
         return current_preference
     except IndexError:
         abort(404)
@@ -20,7 +55,7 @@ def get_preference(preference_id):
 
 @app.route("/")
 def index():
-    return render_template("index.html", posts=list_of_preferences)
+    return render_template("index.html", posts=get_list_of_preferences())
 
 
 @app.route('/<int:post_id>')
@@ -37,9 +72,7 @@ def create():
         if not title:
             flash('Title is required!')
         else:
-            list_of_preferences.append(
-                {"id": len(list_of_preferences), "title": title, "description": description, "created": "NOW"}
-            )
+            append_to_list_of_preferences(title, description)
             return redirect(url_for('index'))
 
     return render_template('create.html')
@@ -54,9 +87,7 @@ def edit(id):
         if not title:
             flash('Title is required!')
         else:
-            list_of_preferences[id] = {
-                "id": id, "title": title, "created": "NOW", "description": description
-            }
+            set_to_list_of_preferences(id, title, description)
             return redirect(url_for('index'))
     return render_template('edit.html', post=current_post)
 
@@ -64,7 +95,7 @@ def edit(id):
 @app.route('/<int:id>/delete', methods=('POST',))
 def delete(id):
     current_preference = get_preference(id)
-    del list_of_preferences[id]
+    delete_preference(id)
     flash('"{}" was successfully deleted!'.format(current_preference['title']))
     return redirect(url_for('index'))
 
