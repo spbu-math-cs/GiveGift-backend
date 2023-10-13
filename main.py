@@ -4,6 +4,8 @@ from werkzeug.security import generate_password_hash
 from datetime import datetime, timedelta
 import jwt  # to add authorization
 
+time = datetime.now()
+
 ALGORITHM = "HS256"
 EXPIRATION_TIME = timedelta(minutes=30)
 SECRET_KEY = "KEY"
@@ -29,8 +31,8 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'fkbvkfjbjfbldsovfmvbkfmbfkbkjhkgkkldksdlklfdlfkkprkppcpkfkpewp'
 
 list_of_preferences = [
-    {"id": 0, "title": "Apple", "created": "later", "description": "NO"},
-    {"id": 1, "title": "Microsoft", "created": "now", "description": "YES"}
+    {"id": 0, "title": "Apple", "created": time, "description": "She loves big red apples."},
+    {"id": 1, "title": "Kitten", "created": time, "description": "She loves small black kittens with black eyes."}
 ]
 
 users = {
@@ -51,13 +53,13 @@ def get_list_of_preferences(user="USER_1"):
 
 def append_to_list_of_preferences(title, description, user="USER_1"):
     return users[user][2].append(
-                {"id": len(list_of_preferences), "title": title, "description": description, "created": "NOW"}
+                {"id": len(list_of_preferences), "title": title, "description": description, "created": datetime.now()}
             )
 
 
 def set_to_list_of_preferences(preference_id, title, description, user="USER_1"):
     users[user][2][preference_id] = {
-                "id": preference_id, "title": title, "created": "NOW", "description": description
+                "id": preference_id, "title": title, "created": datetime.now(), "description": description
             }
 
 
