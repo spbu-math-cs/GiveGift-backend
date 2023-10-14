@@ -6,9 +6,6 @@ from user import *
 
 auth = HTTPBasicAuth()
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'fkbvkfjbjfbldsovfmvbkfmbfkbkjhkgkkldksdlklfdlfkkprkppcpkfkpewp'
-
 # later: change to normal secret_key
 
 
@@ -25,8 +22,14 @@ def verify_password(username_or_token, password):
 
 @app.route("/")
 def index():
-    if g is None or g.user is None:
-        return redirect(url_for('index'))
+    if auth.current_user() is None:
+        return redirect(url_for('login'))
+    if not hasattr(g, 'user'):
+        print("NO attr user")
+        return redirect(url_for('login'))
+    if g.user is None:
+        print(g.user is None)
+        return redirect(url_for('login'))
     return render_template("index.html", posts=get_list_of_preferences())
 
 
@@ -38,9 +41,11 @@ def get_auth_token():
 
 
 @app.route("/login", methods=('GET', 'POST'))
+@auth.login_required
 def login():
-    if g.user is not None:
-        return redirect(url_for('logout'))
+    if hasattr(g, 'user'):
+        if g.user is not None:
+            return redirect(url_for('logout'))
     if request.method == 'POST':
         # noinspection PyShadowingNames
         login = request.form['login']
@@ -68,8 +73,9 @@ def logout():  # TODO incorrect log out
 
 @app.route("/register", methods=('GET', 'POST'))
 def register():
-    if g.user is not None:
-        return redirect(url_for('logout'))
+    if hasattr(g, 'user'):
+        if g.user is not None:
+            return redirect(url_for('logout'))
     if request.method == 'POST':
         # noinspection PyShadowingNames
         login = request.form['login']

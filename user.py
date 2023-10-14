@@ -8,6 +8,9 @@ from itsdangerous import \
 app: Flask
 time = datetime.now()
 
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'fkbvkfjbjfbldsovfmvbkfmbfkbkjhkgkkldksdlklfdlfkkprkppcpkfkpewp'
+
 
 class User:
     # noinspection PyShadowingBuiltins
