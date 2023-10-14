@@ -1,9 +1,9 @@
 from flask import render_template, request, url_for, flash, redirect
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user, current_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 
 from user import *
 
-g = None
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -67,19 +67,17 @@ def register():
         elif not password:
             flash('Password is required!')
         else:
-            user = User(name=login, id=len(user_to_list_of_tag)).hash_password(password)
-            users_login_to_index[login] = len(user_to_list_of_tag)
-            user_to_list_of_tag.append((user, []))
+            UsersGetter.create_new_user(login, password)
             flash('Successfully registered! Now log in, please!')
             return redirect(url_for('login'))
     return render_template('register.html')
 
 
-@app.route("/unregister", methods=('GET', 'POST'))  # TODO incorrect result
+@app.route("/unregister", methods=('GET', 'POST'))
 @login_required
 def unregister():
     if request.method == 'POST':
-        del users_login_to_index[current_user.name]  # delete from users too
+        UsersGetter.delete_user(current_user.name)
         logout_user()
         return redirect(url_for('login'))
     return render_template('unregister.html')
@@ -103,7 +101,6 @@ def create():
         else:
             append_to_list_of_preferences(title, description, current_user.name)
             return redirect(url_for('index'))
-
     return render_template('create.html')
 
 
@@ -111,7 +108,7 @@ def create():
 @app.route('/<int:id>/edit', methods=('GET', 'POST'))
 @login_required
 def edit(id):
-    current_post = get_tag(id)
+    current_post = get_tag(id, current_user.name)
     if request.method == 'POST':
         title = request.form['title']
         description = request.form['content']
@@ -127,7 +124,7 @@ def edit(id):
 @app.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    current_preference = get_tag(id)
+    current_preference = get_tag(id, current_user.name)
     delete_preference(id, current_user.name)
     flash('"{}" was successfully deleted!'.format(current_preference['title']))
     return redirect(url_for('index'))
