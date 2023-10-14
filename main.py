@@ -1,5 +1,6 @@
 from flask import render_template, request, url_for, flash, redirect
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+from werkzeug.exceptions import abort
 
 from user import *
 
@@ -7,18 +8,24 @@ from user import *
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
-# later: change to normal secret_key
+
+def get_tag(tag_id, user):
+    try:
+        current_preference = DataDecorator.get_current_preference(tag_id, user)
+        return current_preference
+    except IndexError:
+        abort(404)
 
 
 @login_manager.user_loader
 def load_user(userid):
-    return UsersGetter.get_user_by_index(int(userid))
+    return UsersProvider.get_user_by_index(int(userid))
 
 
 @app.route("/")
 @login_required
 def index():
-    return render_template("index.html", posts=get_list_of_preferences(current_user.name))
+    return render_template("index.html", posts=DataDecorator.get_list_of_preferences(current_user.name))
 
 
 @app.route("/login", methods=('GET', 'POST'))
@@ -34,7 +41,7 @@ def login():
         elif not password:
             flash('Password is required!')
         else:
-            user = UsersGetter.get_user_by_name(login)
+            user = UsersProvider.get_user_by_name(login)
             if user is None:
                 flash('Username is incorrect!')
             elif not user.verify_password(password):
@@ -67,7 +74,7 @@ def register():
         elif not password:
             flash('Password is required!')
         else:
-            UsersGetter.create_new_user(login, password)
+            UsersProvider.create_new_user(login, password)
             flash('Successfully registered! Now log in, please!')
             return redirect(url_for('login'))
     return render_template('register.html')
@@ -77,7 +84,7 @@ def register():
 @login_required
 def unregister():
     if request.method == 'POST':
-        UsersGetter.delete_user(current_user.name)
+        UsersProvider.delete_user(current_user.name)
         logout_user()
         return redirect(url_for('login'))
     return render_template('unregister.html')
@@ -99,7 +106,7 @@ def create():
         if not title:
             flash('Title is required!')
         else:
-            append_to_list_of_preferences(title, description, current_user.name)
+            DataDecorator.append_to_list_of_preferences(title, description, current_user.name)
             return redirect(url_for('index'))
     return render_template('create.html')
 
@@ -115,7 +122,7 @@ def edit(id):
         if not title:
             flash('Title is required!')
         else:
-            set_to_list_of_preferences(id, title, description, current_user.name)
+            DataDecorator.set_to_list_of_preferences(id, title, description, current_user.name)
             return redirect(url_for('index'))
     return render_template('edit.html', post=current_post)
 
@@ -125,7 +132,7 @@ def edit(id):
 @login_required
 def delete(id):
     current_preference = get_tag(id, current_user.name)
-    delete_preference(id, current_user.name)
+    DataDecorator.delete_preference(id, current_user.name)
     flash('"{}" was successfully deleted!'.format(current_preference['title']))
     return redirect(url_for('index'))
 

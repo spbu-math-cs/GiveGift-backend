@@ -1,14 +1,10 @@
 from flask import Flask
-from werkzeug.exceptions import abort
 from datetime import datetime
 from flask_login import UserMixin
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
-app: Flask
-time = datetime.now()
-
 app = Flask(__name__)
+# later: change to normal secret_key
 app.config['SECRET_KEY'] = 'fkbvkfjbjfbldsovfmvbkfmbfkbkjhkgkkldksdlklfdlfkkprkppcpkfkpewp'
 
 
@@ -26,51 +22,48 @@ class User(UserMixin):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    # def is_authenticated(self):
-    #     return UsersGetter.get_user_by_name(self.name) is not None
-
 
 # some functions to work with DB
-class UserTagLists:
-    def __init__(self, user: User, tag_list: list):
-        self.user = user
-        self.tag_list = tag_list
 
+class UsersProvider:
+    time = datetime.now()
 
-__list_of_tag = [
-    {"id": 0, "title": "Apple", "created": time, "description": "She loves big red apples."},
-    {"id": 1, "title": "Kitten", "created": time, "description": "She loves small black kittens with black eyes."}
-]
+    class UserTagLists:
+        def __init__(self, user: User, tag_list: list):
+            self.user = user
+            self.tag_list = tag_list
 
-user_to_list_of_tag = {
-    0: UserTagLists(User("USER_1", 0).hash_password("123"), __list_of_tag)
-}
+    __list_of_tag = [
+        {"id": 0, "title": "Apple", "created": time, "description": "She loves big red apples."},
+        {"id": 1, "title": "Kitten", "created": time, "description": "She loves small black kittens with black eyes."}
+    ]
 
-users_login_to_index = {
-    "USER_1": 0
-}
+    __user_to_list_of_tag = {
+        0: UserTagLists(User("USER_1", 0).hash_password("123"), __list_of_tag)
+    }
 
-max_existing_user_index = 0
+    __users_login_to_index = {
+        "USER_1": 0
+    }
 
+    __max_existing_user_index = 0
 
-class UsersGetter:
     @staticmethod
     def create_new_user(login: str, password: str):
-        global max_existing_user_index
-        max_existing_user_index += 1
-        user = User(name=login, id=max_existing_user_index).hash_password(password)
-        users_login_to_index[login] = max_existing_user_index
-        user_to_list_of_tag[max_existing_user_index] = UserTagLists(user, [])
+        UsersProvider.__max_existing_user_index += 1
+        user = User(name=login, id=UsersProvider.__max_existing_user_index).hash_password(password)
+        UsersProvider.__users_login_to_index[login] = UsersProvider.__max_existing_user_index
+        UsersProvider.__user_to_list_of_tag[UsersProvider.__max_existing_user_index] = UsersProvider.UserTagLists(user, [])
 
     @staticmethod
     def delete_user(user_name: str):
-        del user_to_list_of_tag[users_login_to_index[user_name]]
-        del users_login_to_index[user_name]
+        del UsersProvider.__user_to_list_of_tag[UsersProvider.__users_login_to_index[user_name]]
+        del UsersProvider.__users_login_to_index[user_name]
 
     @staticmethod
     def get_user_by_name(name: str) -> User:
         try:
-            return  user_to_list_of_tag[users_login_to_index[name]].user
+            return UsersProvider.__user_to_list_of_tag[UsersProvider.__users_login_to_index[name]].user
         except KeyError:
             # noinspection PyTypeChecker
             return None  # correct behaviour for lib function
@@ -78,7 +71,7 @@ class UsersGetter:
     @staticmethod
     def get_user_by_index(index_: int) -> User:
         try:
-            return user_to_list_of_tag[index_].user
+            return UsersProvider.__user_to_list_of_tag[index_].user
         except KeyError:
             # noinspection PyTypeChecker
             return None  # correct behaviour for lib function
@@ -86,7 +79,7 @@ class UsersGetter:
     @staticmethod
     def get_user_tags(name: str) -> list:
         try:
-            return user_to_list_of_tag[users_login_to_index[name]].tag_list
+            return UsersProvider.__user_to_list_of_tag[UsersProvider.__users_login_to_index[name]].tag_list
         except KeyError:  # correct behaviour for lib func
             # noinspection PyTypeChecker
             return None
@@ -94,49 +87,44 @@ class UsersGetter:
     @staticmethod
     def get_user_max_tags_index(name: str) -> int:
         try:
-            return len(user_to_list_of_tag[users_login_to_index[name]].tag_list)
+            return len(UsersProvider.__user_to_list_of_tag[UsersProvider.__users_login_to_index[name]].tag_list)
         except KeyError:  # correct behaviour for lib func
             # noinspection PyTypeChecker
             return None
 
 
-def get_current_preference(preference_id: int, user: str) -> dict:
-    return UsersGetter.get_user_tags(user)[preference_id]
+class DataDecorator:
+    @staticmethod
+    def get_current_preference(preference_id: int, user: str) -> dict:
+        return UsersProvider.get_user_tags(user)[preference_id]
 
+    @staticmethod
+    def get_list_of_preferences(user: str) -> list:
+        return UsersProvider.get_user_tags(user)
 
-def get_list_of_preferences(user: str) -> list:
-    return UsersGetter.get_user_tags(user)
+    @staticmethod
+    def append_to_list_of_preferences(title, description, user: str):
+        UsersProvider.get_user_tags(user).append(
+            {
+                "id": UsersProvider.get_user_max_tags_index(user),
+                "title": title,
+                "description": description,
+                "created": datetime.now()
+            }
+        )
 
-
-def append_to_list_of_preferences(title, description, user: str):
-    UsersGetter.get_user_tags(user).append(
-        {
-            "id": UsersGetter.get_user_max_tags_index(user),
+    @staticmethod
+    def set_to_list_of_preferences(preference_id, title, description, user):
+        UsersProvider.get_user_tags(user)[preference_id] = {
+            "id": preference_id,
             "title": title,
-            "description": description,
-            "created": datetime.now()
+            "created": datetime.now(),
+            "description": description
         }
-    )
 
-
-def set_to_list_of_preferences(preference_id, title, description, user="USER_1"):
-    user_to_list_of_tag[users_login_to_index[user]].tag_list[preference_id] = {
-        "id": preference_id,
-        "title": title,
-        "created": datetime.now(),
-        "description": description
-    }
-
-
-def delete_preference(preference_id, user):
-    del UsersGetter.get_user_tags(user)[preference_id]
+    @staticmethod
+    def delete_preference(preference_id, user):
+        del UsersProvider.get_user_tags(user)[preference_id]
 
 
 # replace all to get a correct behavior (when DB will be ready)
-
-def get_tag(tag_id, user):
-    try:
-        current_preference = get_current_preference(tag_id, user)
-        return current_preference
-    except IndexError:
-        abort(404)
