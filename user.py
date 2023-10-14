@@ -1,9 +1,6 @@
 from flask import Flask
 from werkzeug.exceptions import abort
 from datetime import datetime
-from passlib.apps import custom_app_context as pwd_context
-from itsdangerous import \
-    (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 
 app: Flask
 time = datetime.now()
@@ -20,27 +17,31 @@ class User:
         self.id = id
 
     def hash_password(self, password: str):
-        self.password_hash = pwd_context.encrypt(password)
+        # self.password_hash = pwd_context.encrypt(password)
         return self
 
     def verify_password(self, password):
-        return pwd_context.verify(password, self.password_hash)
+        # return pwd_context.verify(password, self.password_hash)
+        pass
 
     def generate_auth_token(self, expiration=600):
-        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
-        return s.dumps({'id': self.id})
+        # s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        # return s.dumps({'id': self.id})
+        pass
 
     @staticmethod
     def verify_auth_token(token):
-        serializer = Serializer(app.config['SECRET_KEY'])
-        try:
-            data = serializer.loads(token)
-        except SignatureExpired:
-            return None  # valid token, but expired
-        except BadSignature:
-            return None  # invalid token
-        user = user_to_list_of_tag[data['id']][0]
-        return user
+        pass
+        # serializer = Serializer(app.config['SECRET_KEY'])
+        # try:
+        #     pass
+            # data = serializer.loads(token)
+        # except SignatureExpired:
+        #     return None  # valid token, but expired
+        # except BadSignature:
+        #     return None  # invalid token
+        # user = user_to_list_of_tag[data['id']][0]
+        # return user
 
 # some functions to work with DB
 
