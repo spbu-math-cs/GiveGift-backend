@@ -26,8 +26,15 @@ class User(UserMixin):
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # def is_authenticated(self):
+    #     return UsersGetter.get_user_by_name(self.name) is not None
+
 
 # some functions to work with DB
+class UserTagLists:
+    def __init__(self, user: User, tag_list: list):
+        self.user = user
+        self.tag_list = tag_list
 
 
 __list_of_tag = [
@@ -36,7 +43,7 @@ __list_of_tag = [
 ]
 
 user_to_list_of_tag = {
-    0: (User("USER_1", 0).hash_password("123"), (__list_of_tag, 0))
+    0: UserTagLists(User("USER_1", 0).hash_password("123"), __list_of_tag)
 }
 
 users_login_to_index = {
@@ -53,7 +60,7 @@ class UsersGetter:
         max_existing_user_index += 1
         user = User(name=login, id=max_existing_user_index).hash_password(password)
         users_login_to_index[login] = max_existing_user_index
-        user_to_list_of_tag[max_existing_user_index] = (user, ([], -1))
+        user_to_list_of_tag[max_existing_user_index] = UserTagLists(user, [])
 
     @staticmethod
     def delete_user(user_name: str):
@@ -63,19 +70,31 @@ class UsersGetter:
     @staticmethod
     def get_user_by_name(name: str) -> User:
         try:
-            return user_to_list_of_tag[users_login_to_index[name]][0]
+            return  user_to_list_of_tag[users_login_to_index[name]].user
         except KeyError:
             # noinspection PyTypeChecker
             return None  # correct behaviour for lib function
 
     @staticmethod
     def get_user_by_index(index_: int) -> User:
-        return user_to_list_of_tag[index_][0]
+        try:
+            return user_to_list_of_tag[index_].user
+        except KeyError:
+            # noinspection PyTypeChecker
+            return None  # correct behaviour for lib function
 
     @staticmethod
     def get_user_tags(name: str) -> list:
         try:
-            return user_to_list_of_tag[users_login_to_index[name]][1][0]
+            return user_to_list_of_tag[users_login_to_index[name]].tag_list
+        except KeyError:  # correct behaviour for lib func
+            # noinspection PyTypeChecker
+            return None
+
+    @staticmethod
+    def get_user_max_tags_index(name: str) -> int:
+        try:
+            return len(user_to_list_of_tag[users_login_to_index[name]].tag_list)
         except KeyError:  # correct behaviour for lib func
             # noinspection PyTypeChecker
             return None
@@ -90,18 +109,18 @@ def get_list_of_preferences(user: str) -> list:
 
 
 def append_to_list_of_preferences(title, description, user: str):
-    UsersGetter.get_user_tags(user)[1][1] += 1
-    max_used_index = UsersGetter.get_user_tags(user)[1][1]
-    UsersGetter.get_user_tags(user)[max_used_index] = {
-        "id": max_used_index,
-        "title": title,
-        "description": description,
-        "created": datetime.now()
-    }
+    UsersGetter.get_user_tags(user).append(
+        {
+            "id": UsersGetter.get_user_max_tags_index(user),
+            "title": title,
+            "description": description,
+            "created": datetime.now()
+        }
+    )
 
 
 def set_to_list_of_preferences(preference_id, title, description, user="USER_1"):
-    user_to_list_of_tag[users_login_to_index[user]][1][0][preference_id] = {
+    user_to_list_of_tag[users_login_to_index[user]].tag_list[preference_id] = {
         "id": preference_id,
         "title": title,
         "created": datetime.now(),
