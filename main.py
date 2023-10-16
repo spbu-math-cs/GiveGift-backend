@@ -1,6 +1,7 @@
 from flask import render_template, request, url_for, flash, redirect, jsonify
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from werkzeug.exceptions import abort
+from random import randint
 
 from user import *
 
@@ -11,18 +12,13 @@ login_manager.login_view = 'login'
 MAX_USERS = 100
 MAX_TAGS = 10
 
-products = {
-    1: {"id": 1, "name": "Product 1", "price": 5000.0},
-    2: {"id": 2, "name": "Product 2", "price": 10000.0},
-    3: {"id": 3, "name": "Product 3", "price": 20000.0},
-}
 
-@app.route("/products/<int::product_id>", methods=('GET'))
-def get_product(product_id):
-    if(product_id in products):
-        return jsonify(products[product_id])
-    else:
-        return jsonify({"error": "Product not found"}), 404
+@app.route("/get_random_product")
+def get_product():
+    products = DataDecorator.get_list_of_products()
+    product_id = randint(0, len(products) - 1)
+    return jsonify(products[product_id])
+
 
 def get_tag(tag_id, user):
     try:
@@ -88,9 +84,9 @@ def register():
             flash('Login is required!')
         elif not password:
             flash('Password is required!')
-        elif UsersProvider.get_user_by_name(login):  #ban of registration with exhisting login
+        elif UsersProvider.get_user_by_name(login):  # ban of registration with existing login
             flash('User with this login already exists!')
-        elif len(UsersProvider.__users_login_to_index) >= MAX_USERS:
+        elif UsersProvider.get_count_of_users() >= MAX_USERS:
             flash('Maximum number of users reached!')
         else:
             UsersProvider.create_new_user(login, password)

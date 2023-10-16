@@ -56,6 +56,10 @@ class UsersProvider:
         UsersProvider.__user_to_list_of_tag[UsersProvider.__max_existing_user_index] = UsersProvider.UserTagLists(user, [])
 
     @staticmethod
+    def get_count_of_users():
+        return UsersProvider.__max_existing_user_index + 1
+
+    @staticmethod
     def delete_user(user_name: str):
         del UsersProvider.__user_to_list_of_tag[UsersProvider.__users_login_to_index[user_name]]
         del UsersProvider.__users_login_to_index[user_name]
@@ -125,6 +129,34 @@ class DataDecorator:
     @staticmethod
     def delete_preference(preference_id, user):
         del UsersProvider.get_user_tags(user)[preference_id]
+
+    @staticmethod
+    def get_list_of_products():
+        return [
+            {
+                "id": 1,
+                "name": "Cheese",
+                "price": 5000.0,
+                "image": "https://i.ytimg.com/vi/Aa-F6zqLmig/maxresdefault.jpg?9289889566",
+                "link": "https://pythonstart.ru/datetime/kak-poluchit-tekuschee-vremya-python"
+            },
+            {
+                "id": 2,
+                "name": "Bread",
+                "price": 10000.0,
+                "image": "https://i.ytimg.com/vi/Aa-F6zqLmig/maxresdefault.jpg?9289889566",
+                "link": "https://pythonstart.ru/datetime/kak-poluchit-tekuschee-vremya-python"
+            },
+            {
+                "id": 3,
+                "name": "Butter",
+                "price": 20000.0,
+                "image": "https://i.ytimg.com/vi/Aa-F6zqLmig/maxresdefault.jpg?9289889566",
+                "link": "https://pythonstart.ru/datetime/kak-poluchit-tekuschee-vremya-python"
+            },
+        ]
+
+
 
 
 # replace all to get a correct behavior (when DB will be ready)
