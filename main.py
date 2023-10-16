@@ -73,6 +73,8 @@ def register():
             flash('Login is required!')
         elif not password:
             flash('Password is required!')
+        elif UsersProvider.get_user_by_name(login):  #ban of registration with exhisting login
+            flash('User with this login already exists!')
         else:
             UsersProvider.create_new_user(login, password)
             flash('Successfully registered! Now log in, please!')
