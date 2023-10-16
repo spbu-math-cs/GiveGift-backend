@@ -1,4 +1,4 @@
-from flask import render_template, request, url_for, flash, redirect
+from flask import render_template, request, url_for, flash, redirect, jsonify
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from werkzeug.exceptions import abort
 
@@ -10,6 +10,19 @@ login_manager.login_view = 'login'
 
 MAX_USERS = 100
 MAX_TAGS = 10
+
+products = {
+    1: {"id": 1, "name": "Product 1", "price": 5000.0},
+    2: {"id": 2, "name": "Product 2", "price": 10000.0},
+    3: {"id": 3, "name": "Product 3", "price": 20000.0},
+}
+
+@app.route("/products/<int::product_id>", methods=('GET'))
+def get_product(product_id):
+    if(product_id in products):
+        return jsonify(products[product_id])
+    else:
+        return jsonify({"error": "Product not found"}), 404
 
 def get_tag(tag_id, user):
     try:
