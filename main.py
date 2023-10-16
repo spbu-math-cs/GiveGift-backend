@@ -9,6 +9,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 MAX_USERS = 100
+MAX_TAGS = 10
 
 def get_tag(tag_id, user):
     try:
@@ -106,10 +107,13 @@ def post(post_id):
 @login_required
 def create():
     if request.method == 'POST':
+        user = current_user.get_id()
         title = request.form['title']
         description = request.form['content']
         if not title:
             flash('Title is required!')
+        elif len(UsersProvider.get_user_tags(user)) >= MAX_TAGS:
+            flash('Tag limit reached! Cannot create more tags.')
         else:
             DataDecorator.append_to_list_of_preferences(title, description, current_user.name)
             return redirect(url_for('index'))
