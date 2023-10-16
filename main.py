@@ -8,6 +8,7 @@ from user import *
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+MAX_USERS = 100
 
 def get_tag(tag_id, user):
     try:
@@ -75,6 +76,8 @@ def register():
             flash('Password is required!')
         elif UsersProvider.get_user_by_name(login):  #ban of registration with exhisting login
             flash('User with this login already exists!')
+        elif len(UsersProvider.__users_login_to_index) >= MAX_USERS:
+            flash('Maximum number of users reached!')
         else:
             UsersProvider.create_new_user(login, password)
             flash('Successfully registered! Now log in, please!')
