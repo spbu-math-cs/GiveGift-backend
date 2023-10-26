@@ -13,3 +13,4 @@ wheel==0.38.4
 pyopenssl==23.2.0
 flask_httpauth==4.8.0
 passlib==1.7.4
+flask_jwt_extended==4.5.3
