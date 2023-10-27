@@ -7,9 +7,11 @@ from core import app
 @app.route('/edit_interest', methods=["GET", "POST"])
 @jwt_required()
 def edit_interest():
-    user_name: str = get_jwt_identity()
-    if user_name != 'ADMIN':
+    email: str = get_jwt_identity()
+    if email != 'ADMIN':
         return {"response": "500", "message": "401"}
+    if not data_base.get_user_by_name_or_none(email).is_token_actual:
+        return {"response": "500", "message": "Token is not actual"}
     if request.method == 'POST':
         new_interests = request.json.get("new_interests", None)
         edit_interests = request.json.get("edit_interests", None)

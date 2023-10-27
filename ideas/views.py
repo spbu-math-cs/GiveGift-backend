@@ -1,6 +1,7 @@
 from flask import request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
+from DB import data_base
 from core import app
 from . import idea_generator
 
@@ -8,6 +9,9 @@ from . import idea_generator
 @app.route('/generate_ideas', methods=["GET", "POST"])
 @jwt_required()
 def index():
+    if email := get_jwt_identity():
+        if not data_base.get_user_by_name_or_none(email).is_token_actual:
+            return {"response": "500", "message": "Token is not actual"}
     if request.method == 'POST':
         interests = request.json.get("interests", None)
         num_of_ideas = request.json.get("num_of_ideas", None)

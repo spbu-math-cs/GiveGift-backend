@@ -14,6 +14,7 @@ class User:
         self.birth_date = birth_date
         self.about = about
         self.interests = interests
+        self.is_token_actual = False
 
     def verify_password(self, password) -> bool:
         return check_password_hash(pwhash=self.password_hash, password=password)
@@ -32,7 +33,7 @@ class UsersProvider:
                 nickname="TestNick",
                 email="ivan@login.su",
                 birth_date=None,
-                about=None,
+                about="",
                 interests=[],
                 password="12345"
             )
@@ -62,7 +63,7 @@ class UsersProvider:
     def get_user_by_name_or_none(self, email: str) -> User:
         try:
             return [user for user in self.__users if user.email == email][0]
-        except KeyError:
+        except IndexError:
             # noinspection PyTypeChecker
             return None
 

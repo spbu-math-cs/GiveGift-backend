@@ -23,17 +23,17 @@ def register():
     about = request.json.get("about", None)
     interests = request.json.get("interests", None)
     if email is None or password is None or data_base.get_user_by_name_or_none(email=email) is not None:
-        return {"response": "500", "message": "401"}
+        return {"response": "500", "message": "None"}
     if birth_date is not None:
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
-            return {"response": "500", "message": "401"}
+            return {"response": "500", "message": "Date"}
     if type(interests) is not list:
-        return {"response": "500", "message": "401"}
+        return {"response": "500", "message": "List"}
     for interest in interests:
         if not data_base.has_tag(interest):
-            return {"response": "500", "message": "401"}
+            return {"response": "500", "message": "Invalid interest"}
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
     return {"response": "200", "message": "OK"}
@@ -41,21 +41,22 @@ def register():
 
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
-        index = random.randint(0, data_base.get_tags_count())
+        index = random.randint(0, data_base.get_tags_count() - 1)
         interests.append(data_base.get_tags()[index])
 
 
 @app.route('/login', methods=["POST"])
 @jwt_required(optional=True)
 def create_token():
-    email: str = get_jwt_identity()
-    if email is not None:
-        return {"response": "200", "message": "OK"}
+    if email := get_jwt_identity():
+        if data_base.get_user_by_name_or_none(email).is_token_actual:
+            return {"response": "500", "message": "Token is actual"}
     email = request.json.get("email", None)
     password = request.json.get("password", None)
     if email is None or password is None or not data_base.has_user(email, password):
-        return {"response": "500", "message": "401"}
+        return {"response": "500", "message": "no email or password"}
     access_token = create_access_token(identity=email)
+    data_base.get_user_by_name_or_none(email).is_token_actual = True
     return {"response": "200", "message": "OK", "access_token": access_token}
 
 
@@ -88,6 +89,9 @@ def set_info() -> dict:
 @app.route('/account', methods=["GET", "POST"])
 @jwt_required()
 def get_account_info():
+    if email := get_jwt_identity():
+        if not data_base.get_user_by_name_or_none(email).is_token_actual:
+            return {"response": "500", "message": "Token is not actual"}
     if request.method == 'POST':
         return set_info()
     email: str = get_jwt_identity()
@@ -107,8 +111,12 @@ def get_account_info():
 @app.route('/logout', methods=["POST"])
 @jwt_required()
 def logout():
+    if email := get_jwt_identity():
+        if not data_base.get_user_by_name_or_none(email).is_token_actual:
+            return {"response": "500", "message": "Token is not actual"}
     response = jsonify({"response": "200", "message": "logout successful"})
     unset_jwt_cookies(response)
+    data_base.get_user_by_name_or_none(email).is_token_actual = False
     return response
 
 

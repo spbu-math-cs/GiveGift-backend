@@ -16,13 +16,6 @@ email: <you_email>, # default is "ivan@login.su" 12345
 password: <you_password>
 }
 ```
-result if was authorized later
-```
-{
-response: 200,
-message: OK
-}
-```
 another see in tg
 ### Logout
 POST /logout
