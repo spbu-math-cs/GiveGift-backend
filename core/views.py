@@ -6,7 +6,7 @@ from core import idea_generator
 
 
 @app.route('/generate_ideas', methods=["GET", "POST"])
-#@jwt_required()
+@jwt_required()
 def index():
     if request.method == 'POST':
         interests = request.json.get("interests", None)

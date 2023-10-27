@@ -1,18 +1,15 @@
 from flask import request
-from flask_jwt_extended import \
-    get_jwt_identity,\
-    jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from DB import data_base
-
 from core import app
 
 
 @app.route('/edit_interest', methods=["GET", "POST"])
 @jwt_required()
-def edit_interest():  # TODO refactor
+def edit_interest():
     user_name: str = get_jwt_identity()
     if user_name != 'ADMIN':
-        return {"response": "500", "message": "401"}  # TODO unique user
+        return {"response": "500", "message": "401"}
     if request.method == 'POST':
         new_interests = request.json.get("new_interests", None)
         edit_interests = request.json.get("edit_interests", None)
@@ -21,7 +18,7 @@ def edit_interest():  # TODO refactor
         if type(new_interests) is not list or type(edit_interests) is not list:
             return {"response": "500", "message": "401"}
         for interest in new_interests:
-            if type(interest) is not str or data_base.has_tag(interest):  # TODO add analogs
+            if type(interest) is not str or data_base.has_tag(interest):
                 return {"response": "500", "message": "401"}
             data_base.create_tag(interest)
         for interest in edit_interests:
@@ -39,6 +36,4 @@ def edit_interest():  # TODO refactor
             except TypeError:
                 return {"response": "500", "message": "401"}
         return {"response": "200", "message": "OK"}
-    return {
-        "interests": data_base.get_tags()
-    }
+    return {"interests": data_base.get_tags()}
