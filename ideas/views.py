@@ -2,7 +2,7 @@ from flask import request
 from flask_jwt_extended import jwt_required
 
 from core import app
-from core import idea_generator
+from . import idea_generator
 
 
 @app.route('/generate_ideas', methods=["GET", "POST"])
