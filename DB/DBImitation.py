@@ -5,24 +5,20 @@ from datetime import date
 class User:
     __max_id = 0
 
-    def __init__(self, nickname: str, email: str, birth_date: date, about: str, interests: list):
+    def __init__(self, nickname: str, email: str, birth_date: date, about: str, interests: list, password: str):
         self.id = User.__max_id + 1
         User.__max_id += 1
         self.nickname = nickname
         self.email = email
-        self.password_hash = None
+        self.password_hash = generate_password_hash(password=password)
         self.birth_date = birth_date
         self.about = about
         self.interests = interests
 
-    def hash_password(self, password: str):
-        self.password_hash = generate_password_hash(password)
-        return self
+    def verify_password(self, password) -> bool:
+        return check_password_hash(pwhash=self.password_hash, password=password)
 
-    def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-    def add_interest(self, interest: str):
+    def add_user_tag(self, interest: str) -> None:
         self.interests.append(interest)
 
 
@@ -31,51 +27,75 @@ class User:
 class UsersProvider:
     def __init__(self):
         # noinspection PyTypeChecker
-        self.__users = [User("TestNick", "ivan@login.su", None, None, []).hash_password("12345")]  # initialize DB
+        self.__users = [
+            User(
+                nickname="TestNick",
+                email="ivan@login.su",
+                birth_date=None,
+                about=None,
+                interests=[],
+                password="12345"
+            )
+        ]
+        # initialize DB
 
-    def create_new_user(self, nickname: str, login: str, password: str, about: str, birth_date: date, interests: list):
-        self.__users.append(User(nickname, login, birth_date, about, interests).hash_password(password))
+    def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date, interests: list) -> None:
+        self.__users.append(
+            User(
+                nickname=nickname,
+                email=email,
+                birth_date=birth_date,
+                about=about,
+                interests=interests,
+                password=password
+            )
+        )
 
-    def get_count_of_users(self):
+    def get_count_of_users(self) -> int:
         return len(self.__users)
 
-    def delete_user(self, user_name: str):
+    def delete_user(self, user_name: str) -> None:
+        if self.get_user_by_name_or_none(user_name) is None:
+            raise AssertionError("Can't delete user, that is not exists!")
         del [user for user in self.__users if user.nickname == user_name][0]
 
-    def get_user_by_name(self, user_name: str) -> User:
+    def get_user_by_name_or_none(self, email: str) -> User:
         try:
-            return [user for user in self.__users if user.email == user_name][0]
+            return [user for user in self.__users if user.email == email][0]
         except KeyError:
-            # noinspection PyTypeChecker
-            return None  # correct behaviour for lib function
-
-    def get_user_by_index(self, user_index: int) -> User:
-        try:
-            return [user for user in self.__users if user.id == user_index][0]
-        except KeyError:
-            # noinspection PyTypeChecker
-            return None  # correct behaviour for lib function
-
-    def get_user_tags(self, name: str) -> list:
-        user = self.get_user_by_name(name)
-        if user is None:
             # noinspection PyTypeChecker
             return None
+
+    def get_user_by_index_or_none(self, user_id: int) -> User:
+        try:
+            return [user for user in self.__users if user.id == user_id][0]
+        except KeyError:
+            # noinspection PyTypeChecker
+            return None
+
+    def get_user_tags_by_name(self, email: str) -> list:
+        user = self.get_user_by_name_or_none(email=email)
+        if user is None:
+            raise AssertionError("Can't get user tags, if user is not exists!")
         return user.interests
 
 
 class TagProvider:
     def __init__(self):
-        self.__interests = ["Films", "Images", "Driving", "Making project for Prog. Eng.", "Tinkoff", "Programming"]
+        self.__tags = ["Films", "Images", "Driving", "Making project for Prog. Eng.", "Tinkoff", "Programming"]
 
-    def get_interests(self):
-        return self.__interests[:]
+    def get_tags(self) -> list:
+        return self.__tags[:]
 
-    def add_interests(self, interest: str):
-        self.__interests.append(interest)
+    def add_tag(self, tag: str) -> None:
+        if tag in self.__tags:
+            raise AssertionError("Tag with this name was already added!")
+        self.__tags.append(tag)
 
-    def delete_interest(self, interest: str):
-        self.__interests.remove(interest)
+    def delete_tag(self, tag: str) -> None:
+        if tag not in self.__tags:
+            raise AssertionError("Tag with this name wasn't already added!")
+        self.__tags.remove(tag)
 
 
 class DataDecorator:
@@ -83,31 +103,52 @@ class DataDecorator:
         self.__tag_provider = TagProvider()  # initialize DB
         self.__user_provider = UsersProvider()
 
-    def has_user_as(self, login: str, password: str):
-        user = self.__user_provider.get_user_by_name(login)
+    def has_user(self, email: str, password: str) -> bool:
+        user = self.__user_provider.get_user_by_name_or_none(email=email)
         if user is None:
             return False
         return user.verify_password(password)
 
-    def has_tag_as(self, tag: str):
-        return tag in self.__tag_provider.get_interests()
+    def has_tag(self, tag: str) -> bool:
+        return tag in self.__tag_provider.get_tags()
 
-    def get_tags(self):
-        return self.__tag_provider.get_interests()
+    def create_tag(self, tag: str) -> None:
+        if self.has_tag(tag):
+            raise AssertionError("Can't add tag, that is exists!")
+        self.__tag_provider.add_tag(tag)
 
-    def get_tag_count(self):
-        return len(self.__tag_provider.get_interests())
+    def delete_tag_as(self, tag: str) -> None:
+        if not self.has_tag(tag):
+            raise AssertionError("Can't delete tag, that is not exists!")
+        self.__tag_provider.delete_tag(tag)
 
-    def create_user(self, nickname: str, login: str, password: str, about: str, birth_date: date, interests: list):
-        self.__user_provider.create_new_user(nickname, login, password, about, birth_date, interests)
+    def get_tags(self) -> list:
+        return self.__tag_provider.get_tags()
 
-    def get_user_by_name(self, name: str):
-        return self.__user_provider.get_user_by_name(name)
+    def get_tags_count(self) -> int:
+        return len(self.__tag_provider.get_tags())
 
-    def has_user_with_id(self, user_id: int):
-        return self.__user_provider.get_user_by_index(user_id) is not None
+    def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date, interests: list) -> None:
+        if email is None or password is None:
+            raise AssertionError("Can't create user without email or password!")
+        self.__user_provider.create_user(nickname, email, password, about, birth_date, interests)
 
-    def get_user_with_id(self, user_id: int):
-        return self.__user_provider.get_user_by_index(user_id)
+    def get_user_by_name_or_none(self, email: str) -> User:
+        return self.__user_provider.get_user_by_name_or_none(email=email)
+
+    def has_user_with_id(self, user_id: int) -> bool:
+        return self.__user_provider.get_user_by_index_or_none(user_id=user_id) is not None
+
+    def get_user_with_id(self, user_id: int) -> User:
+        return self.__user_provider.get_user_by_index_or_none(user_id=user_id)
+
+    def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str, birth_date: date) -> None:
+        user = self.get_user_with_id(user_id)
+        user.about = about
+        user.email = email
+        user.interests = interests
+        user.nickname = nickname
+        user.birth_date = birth_date
+        user.password = password
 
 # replace all to get a correct behavior (when DB will be ready)
