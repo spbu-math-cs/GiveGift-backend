@@ -1,3 +1,3 @@
-from DBImitation import DataDecorator
+from .DBImitation import DataDecorator
 
 data_base = DataDecorator()

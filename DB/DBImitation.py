@@ -44,7 +44,7 @@ class UsersProvider:
 
     def get_user_by_name(self, user_name: str) -> User:
         try:
-            return [user for user in self.__users if user.nickname == user_name][0]
+            return [user for user in self.__users if user.email == user_name][0]
         except KeyError:
             # noinspection PyTypeChecker
             return None  # correct behaviour for lib function
