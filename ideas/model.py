@@ -3,7 +3,7 @@ class IdeaGenerator:
         # noinspection PyTypeChecker
         self.__previous_ideas: list = None
 
-    def generate_ideas(self, interests: list, num_of_ideas: int, price_interval: int):
+    def generate_ideas(self, tags: list, num_of_ideas: int, price_interval: int):
         self.__previous_ideas = [
             {
                 "title": "House",

@@ -36,18 +36,21 @@ def register():
             return {"response": "500", "message": "401"}
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
-    # TODO to log in
     return {"response": "200", "message": "OK"}
 
 
-def add_default_preferences(interests):
+def add_default_preferences(interests) -> None:
     for add_preference in range(5):
         index = random.randint(0, data_base.get_tags_count())
         interests.append(data_base.get_tags()[index])
 
 
 @app.route('/login', methods=["POST"])
+@jwt_required(optional=True)
 def create_token():
+    email: str = get_jwt_identity()
+    if email is not None:
+        return {"response": "200", "message": "OK"}
     email = request.json.get("email", None)
     password = request.json.get("password", None)
     if email is None or password is None or not data_base.has_user(email, password):
