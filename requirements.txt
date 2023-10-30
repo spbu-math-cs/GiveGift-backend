@@ -14,3 +14,7 @@ pyopenssl==23.2.0
 flask_httpauth==4.8.0
 passlib==1.7.4
 flask_jwt_extended==4.5.3
+
+openai==0.28.1
+requests==2.31.0
+beautifulsoup4==4.12.2
