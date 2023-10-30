@@ -26,3 +26,7 @@ def link_to_market(str):
     return link
 
 
+def title_with_link(context, role, max_budget):
+    response = generate_present(context,role,max_budget)
+    for link in response:
+        print(link,": ", link_to_market(link),"\n")
