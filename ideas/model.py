@@ -13,8 +13,8 @@ class IdeaGenerator:
         self.__previous_ideas = [
             {
                 "title": link_title[0],
-                "description": "Good house!",
-                "img_link": "https://python.org",
+                "description": "Обработка изображений не поддерживается",
+                "img_link": "https://all-t-shirts.ru/goods_images/1717/1880/ru111223/ru111223II0008e81d0e64a4b4984530b336bbe8be70d.jpg",
                 "market_link": link_title[1],
             }
         ]
