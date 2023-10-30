@@ -13,7 +13,16 @@ def generate_present(context, role, max_budget):
                 f" который можно купить в любом интернет-магазине"}
         ])
         recommendation = completion.choices[0].message.content
-        #print(recommendation)
         return recommendation.split('\n')
+
+def link_to_market(str):
+    request=str.split()
+    request.pop(0)
+    link = "https://megamarket.ru/catalog/?q="
+    for q in request:
+        link+="%20"+q
+    if link[-1]=='.':
+        link[:-1]
+    return link
 
 
