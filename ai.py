@@ -23,7 +23,7 @@ def generate_present(context, role, max_budget, num_of_ideas):
         recommendation = completion.choices[0].message.content
         return recommendation.split('\n')
 
-def link_to_market(str):
+def link_to_market(str,min_budg,max_budg):
     request=str.split()
     request.pop(0)
     link = "https://megamarket.ru/catalog/?q="
@@ -31,16 +31,14 @@ def link_to_market(str):
         link+="%20"+q
     if link[-1]=='.':
         link[:-1]
+    link+=f"#?filters=%7B%2288C83F68482F447C9F4E401955196697%22%3A%7B%22min%22%3A{min_budg}%2C%22max%22%3A{max_budg}%7D%7D"
     return link
 
 
-def get_img(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, features="html.parser")
 
-def title_with_link(context, role, max_budget, num_of_ideas):
+def title_with_link(context, role, max_budget, num_of_ideas,min_budg):
     response = generate_present(context,role,max_budget,num_of_ideas)
     for link in response:
-        print(link,": ", link_to_market(link),"\n")
+        print(link,": ", link_to_market(link,min_budg,max_budget),"\n")
 
-title_with_link("машины, игрушки", "друг",5000,3)
+title_with_link("машины, игрушки", "друг",5000,3,1500)
