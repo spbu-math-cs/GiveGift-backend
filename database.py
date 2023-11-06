@@ -4,7 +4,7 @@ import sqlalchemy
 from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, DateTime, func, and_
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -32,8 +32,8 @@ def _raises_database_exit_exception(func):
 
     return _wrapper
 
+    # TODO: add exception handling
 
-# TODO: add exception handling
 
 class Base(DeclarativeBase):
     pass
@@ -42,8 +42,8 @@ class Base(DeclarativeBase):
 class Interest(Base):
     __tablename__ = "Interest"
 
-    id = sa.Column(Integer, primary_key=True, autoincrement=True)
-    name = sa.Column(String(64), index=True, unique=True)
+    id = sa.Column(Integer, primary_key=True)
+    name = sa.Column(String(64), index=True, unique=True, nullable=False)
 
     def __repr__(self):
         return "<Interest '{}'>".format(self.name)
@@ -52,11 +52,12 @@ class Interest(Base):
 class User(UserMixin, Base):
     __tablename__ = "User"
 
-    id = sa.Column(Integer, primary_key=True, autoincrement=True)
-    nickname = sa.Column(String(64), index=True, unique=True)
+    id = sa.Column(Integer, primary_key=True)
+    nickname = sa.Column(String(64), index=True, unique=True, nullable=False)
     birth_date = sa.Column(DateTime, index=True)
     about = sa.Column(String(500), index=True)
-    email = sa.Column(String(120), index=True, unique=True)
+    email = sa.Column(String(120), index=True, unique=True, nullable=False)
+    interests = relationship('Interest', secondary='user_interest', backref='User')
     password_hash = sa.Column(String(128))
 
     def __repr__(self):
@@ -95,9 +96,10 @@ class UserDatabase:
             self.db.drop_all()
 
     @_raises_database_exit_exception
-    def add_user(self, nickname: str, email: str, birth_date: datetime.datetime, about: str, password: str):
+    def add_user(self, id: int, nickname: str, email: str, birth_date: datetime.datetime, about: str, password: str):
         with self.app.app_context():
             user = User()
+            user.id = id
             user.nickname = nickname
             user.about = about
             user.set_password(password)
@@ -107,9 +109,9 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def add_interest(self, name: str):
+    def add_interest(self, id: int, name: str):
         with self.app.app_context():
-            interest = Interest(name=name)
+            interest = Interest(id=id, name=name)
             self.db.session.add(interest)
             self.db.session.commit()
 
@@ -142,57 +144,57 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def get_user_by_id(self, user_id: int):
+    def get_user_by_id(self, user_id: int) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).get(user_id)
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_nickname(self, nickname: str):
+    def get_user_by_nickname(self, nickname: str) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).filter_by(nickname=nickname).first()
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_email(self, email: str):
+    def get_user_by_email(self, email: str) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).filter_by(email=email).first()
             return user
 
     @_raises_database_exit_exception
-    def get_interest_by_id(self, interest_id: int):
+    def get_interest_by_id(self, interest_id: int) -> Interest:
         with self.app.app_context():
             interest = self.db.session.query(Interest).filter_by(id=interest_id).first()
             return interest
 
     @_raises_database_exit_exception
-    def get_interest_by_name(self, name: str):
+    def get_interest_by_name(self, name: str) -> Interest:
         with self.app.app_context():
             interest = self.db.session.query(Interest).filter_by(name=name).first()
             return interest
 
     @_raises_database_exit_exception
-    def get_count_of_users(self):
+    def get_count_of_users(self) -> int:
         with self.app.app_context():
             return self.db.session.query(User).count()
 
     @_raises_database_exit_exception
-    def get_count_of_interests(self):
+    def get_count_of_interests(self) -> int:
         with self.app.app_context():
             return self.db.session.query(Interest).count()
 
     @_raises_database_exit_exception
-    def get_all_users(self):
+    def get_all_users(self) -> [User]:
         with self.app.app_context():
             return self.db.session.query(User).all()
 
     @_raises_database_exit_exception
-    def get_all_interests(self):
+    def get_all_interests(self) -> [Interest]:
         with self.app.app_context():
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_interests(self, user_id: int):
+    def get_user_interests(self, user_id: int) -> [Interest]:
         with self.app.app_context():
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
@@ -203,7 +205,7 @@ class UserDatabase:
             return interests
 
     @_raises_database_exit_exception
-    def get_users_with_interest(self, interest_id: int):
+    def get_users_with_interest(self, interest_id: int) -> [User]:
         with self.app.app_context():
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.user_id).where(
@@ -221,7 +223,7 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def has_user(self, email: str, password: str):
+    def has_user(self, email: str, password: str) -> bool:
         with self.app.app_context():
             user = self.get_user_by_email(email)
             if user is None:
@@ -229,7 +231,7 @@ class UserDatabase:
             return user.check_password(password)
 
     @_raises_database_exit_exception
-    def has_tag(self, tag: str):
+    def has_tag(self, tag: str) -> bool:
         with self.app.app_context():
             return tag in list(map(lambda x: x.name, self.db.session.query(Interest).all()))
 
