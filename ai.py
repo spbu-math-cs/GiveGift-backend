@@ -27,12 +27,12 @@ def generate_present(context, role, max_budget, num_of_ideas):
 def link_to_market(string, min_budg, max_budg):
     request_value = string.split()
     request_value.pop(0)
-    link = "https://megamarket.ru/catalog/?q="
+    link = "https://www.wildberries.ru/catalog/0/search.aspx?search="
     for q in request_value:
         link += "%20" + q
     if link[-1] == '.':
         link = link[:-1]
-    link += f"#?filters=%7B%2288C83F68482F447C9F4E401955196697%22%3A%7B%22min%22%3A{min_budg}%2C%22max%22%3A{max_budg}%7D%7D"
+    link += f"&priceU={min_budg}00%3B{max_budg}00"
     return link
 
 
