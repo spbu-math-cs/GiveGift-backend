@@ -1,11 +1,14 @@
 from typing import Optional
-
 import requests
+
+
+def get_link(name_of_product, min_budget, max_budget) -> str:
+    return f'https://search.wb.ru/exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&suppressSpellcheck=false'
 
 
 def get_query_link(name_of_product, min_budget, max_budget):
     response = requests.get(
-        f'https://search.wb.ru/exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&suppressSpellcheck=false',
+        get_link(name_of_product=name_of_product, min_budget=min_budget, max_budget=max_budget)
     )
     return response.json()
 
