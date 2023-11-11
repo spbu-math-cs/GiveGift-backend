@@ -90,12 +90,12 @@ class TagProvider:
 
     def add_tag(self, tag: str) -> None:
         if tag in self.__tags:
-            raise AssertionError("Tag with this name was already added!")
+            raise AssertionError("Tag with this name_of_product was already added!")
         self.__tags.append(tag)
 
     def delete_tag(self, tag: str) -> None:
         if tag not in self.__tags:
-            raise AssertionError("Tag with this name wasn't already added!")
+            raise AssertionError("Tag with this name_of_product wasn't already added!")
         self.__tags.remove(tag)
 
 

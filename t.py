@@ -46,9 +46,9 @@ from requests import Response
 #                 "filters": "",
 #                 "page": "4",
 #                 "query": "",
-#                 "facets": "[\"designers.name\",\"category_path\",\"category_size\",\"price_i\",\"condition\",\"location\",\"badges\",\"strata\"]",
+#                 "facets": "[\"designers.name_of_product\",\"category_path\",\"category_size\",\"price_i\",\"condition\",\"location\",\"badges\",\"strata\"]",
 #                 "tagFilters": "",
-#                 "facetFilters": "[[\"category_path:footwear.hitop_sneakers\"],[\"designers.name:Jordan Brand\"]]",
+#                 "facetFilters": "[[\"category_path:footwear.hitop_sneakers\"],[\"designers.name_of_product:Jordan Brand\"]]",
 #                 "numericFilters": "[\"price_i>=0\",\"price_i<=99999\"]"
 #             })
 #         }
@@ -136,8 +136,8 @@ from requests import Response
 #
 #     driver.find_element_by_xpath("//div[@class='fotorama__arr fotorama__arr--next']").click()
 #
-#     name = url.split('/')[-1]
-#     urllib.request.urlretrieve(url, name)
+#     name_of_product = url.split('/')[-1]
+#     urllib.request.urlretrieve(url, name_of_product)
 #
 #     time.sleep(2)
 #
