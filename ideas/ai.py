@@ -24,7 +24,7 @@ def generate_title_or_none(tags: list, min_budget: int, max_budget: int) -> Opti
         f"Сгенерируй одну идею, что подарить человеку, если он любит "
         + str(tags)[1: -1] + f", если я готов потратить от {min_budget} до {max_budget} рублей. Ответ выдай одним словом"
         )
-    if len(result) > 50:
+    if len(result) > 1000:
         return None
     return result
 

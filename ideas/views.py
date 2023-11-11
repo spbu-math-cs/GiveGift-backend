@@ -7,11 +7,11 @@ from . import idea_generator
 
 
 @app.route('/generate_ideas', methods=["GET", "POST"])
-@jwt_required()
+#@jwt_required()
 def index():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_name_or_none(email).is_token_actual:
-            return {"response": "500", "message": "Token is not actual"}
+    # if email := get_jwt_identity():
+    #     if not data_base.get_user_by_name_or_none(email).is_token_actual:
+    #         return {"response": "500", "message": "Token is not actual"}
     if request.method == 'POST':
         interests = request.json.get("interests", None)
         num_of_ideas = request.json.get("num_of_ideas", None)
