@@ -27,3 +27,5 @@ result
 }
 ```
 All another see in tg
+
+To /generate_ideas description is deprecated
