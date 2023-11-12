@@ -45,7 +45,7 @@ async def generate_ideas_or_none(tags: List[str], number_of_ideas: int, titles: 
         return_when="FIRST_COMPLETED"
     )
     await lock.acquire()
-    for idea in finished.pop().result():
+    for idea in set(finished.pop().result()):
         titles.append(idea.capitalize())
     lock.release()
 

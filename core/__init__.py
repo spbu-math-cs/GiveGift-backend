@@ -1,6 +1,8 @@
 from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 from tags import tags as tags_blueprint
 app.register_blueprint(blueprint=tags_blueprint)
