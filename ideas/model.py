@@ -13,19 +13,14 @@ class IdeaGenerator:
         self.__previous_ideas = []
         titles = []
         if num_of_ideas > 10 or num_of_ideas <= 0:
-            raise RuntimeError("Unsupported num_of_ideas not in 1..10")
+            raise RuntimeError("Unsupported. num_of_ideas not in 1..10")
         ioloop = asyncio.new_event_loop()
         asyncio.set_event_loop(ioloop)
         lock = asyncio.Lock()
-        tasks = [
-            ioloop.create_task(generate_ideas_or_none(tags=tags, number_of_ideas=num_of_ideas, titles=titles, lock=lock))
-        ]
         try:
-            ioloop.run_until_complete(asyncio.wait(tasks))
-        except IndexError:
+            asyncio.run(generate_ideas_or_none(tags=tags, number_of_ideas=num_of_ideas, titles=titles, lock=lock))
+        except Exception:
             pass
-        finally:
-            ioloop.close()
         for title in titles:
             link = generate_link(title=title, min_budget=price_interval[0], max_budget=price_interval[1])
             image_link = get_image_link_or_none(product_name=title, min_budget=price_interval[0], max_budget=price_interval[1])

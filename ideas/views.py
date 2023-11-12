@@ -18,6 +18,8 @@ def index():
             num_of_ideas = int(num_of_ideas)
         except TypeError:
             return {"response": "500", "message": "4013"}
+        if num_of_ideas not in range(1, 11):
+            return {"response": "500", "message": "4014"}
         if type(price_interval) is not list:  # price interval is list, contains two integers
             return {"response": "500", "message": "4014"}
         if len(price_interval) != 2:
