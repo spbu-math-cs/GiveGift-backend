@@ -18,10 +18,11 @@ openai==0.28.1
 requests==2.31.0
 beautifulsoup4==4.12.2
 
+flask_cors==3.0.10
 selenium==3.11.0
 webdriver_manager==4.0.1
 requests_html==0.10.0
 
 tqdm==4.66.1
 bs4==0.0.1
-g4f==0.1.8.1
+g4f==0.1.8.2

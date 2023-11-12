@@ -1,4 +1,5 @@
 import asyncio
+import runpy
 
 import g4f
 from typing import List, Optional
@@ -31,6 +32,7 @@ async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
         return result.replace('.', '').split(', ')
     except Exception as e:
         print(e)
+        runpy.run_module("g4f")
         return None
 
 
