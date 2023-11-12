@@ -1,8 +1,8 @@
 import asyncio
 import runpy
+from typing import List, Optional
 
 import g4f
-from typing import List, Optional
 
 
 def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]:
@@ -50,6 +50,3 @@ async def generate_ideas_or_none(tags: List[str], number_of_ideas: int, titles: 
     for idea in set(finished.pop().result()):
         titles.append(idea.capitalize())
     lock.release()
-
-
-# Если Exception in callback StreamRequest.release_curl() вылетать будет, не пугайся: это приколы в gpt4free, на это просто забить можно
