@@ -23,8 +23,10 @@ def register():
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
-    if email == "" or password == "" or data_base.get_user_by_name_or_none(email=email) != "":
-        return {"response": "500", "message": "Пользователь с таким email уже существует. Введите другой email!"}
+    if nickname == "" or email == "" or password == "":
+        return {"response": "500", "message": "Заполните все поля!"}
+    if data_base.get_user_by_name_or_none(email=email):
+        return {"response": "500", "message": "Пользователь с таким email уже существует!"}
     if birth_date != "":
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
@@ -37,9 +39,9 @@ def register():
             return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!"}
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
-    if email := get_jwt_identity():
-        if data_base.get_user_by_name_or_none(email).is_token_actual:
-            return {"response": "200", "message": "OK"}  # TODO was loged in
+    # if email := get_jwt_identity():
+    #     if data_base.get_user_by_name_or_none(email).is_token_actual:
+    #         return {"response": "200", "message": "OK"}  # TODO was loged in
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
     return {"response": "200", "message": "OK", "access_token": access_token}
