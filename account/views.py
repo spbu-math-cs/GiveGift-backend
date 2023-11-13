@@ -15,6 +15,7 @@ jwt = JWTManager(app=app)
 
 
 @app.route('/register', methods=["POST"])
+@jwt_required(optional=True)
 def register():
     nickname = request.json.get("nickname", None)
     email = request.json.get("email", None)
@@ -36,7 +37,12 @@ def register():
             return {"response": "500", "message": "Invalid interest"}
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
-    return {"response": "200", "message": "OK"}
+    if email := get_jwt_identity():
+        if data_base.get_user_by_name_or_none(email).is_token_actual:
+            return {"response": "200", "message": "OK"}  # TODO was loged in
+    access_token = create_access_token(identity=email)
+    data_base.get_user_by_name_or_none(email).is_token_actual = True
+    return {"response": "200", "message": "OK", "access_token": access_token}
 
 
 def add_default_preferences(interests) -> None:
