@@ -83,7 +83,7 @@ class UsersProvider:
 
 class TagProvider:
     def __init__(self):
-        self.__tags = ["Films", "Images", "Driving", "Making project for Prog. Eng.", "Tinkoff", "Programming"]
+        self.__tags = ["Кино", "Мультфильмы", "Походы", "Романтика", "Цветы", "Духи", "Книги", "Спорт", "Природа"]
 
     def get_tags(self) -> list:
         return self.__tags[:]
