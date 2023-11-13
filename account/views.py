@@ -23,7 +23,7 @@ def register():
     about = request.json.get("about", None)
     interests = request.json.get("interests", None)
     if email is None or password is None or data_base.get_user_by_name_or_none(email=email) is not None:
-        return {"response": "500", "message": "None"}
+        return {"response": "500", "message": "Пользователь с таким email уже существует. Введите другой email!"}
     if birth_date is not None:
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
@@ -53,8 +53,10 @@ def create_token():
             return {"response": "500", "message": "Token is actual"}
     email = request.json.get("email", None)
     password = request.json.get("password", None)
-    if email is None or password is None or not data_base.has_user(email, password):
-        return {"response": "500", "message": "no email or password"}
+    if email is None or password is None or data_base.get_user_by_name_or_none(email) is None:
+        return {"response": "500", "message": "Пользователя с данным email не существует!"}
+    if not data_base.has_user(email, password):
+        return {"response": "500", "message": "Неверные имя пользователя или пароль!"}
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
     return {"response": "200", "message": "OK", "access_token": access_token}

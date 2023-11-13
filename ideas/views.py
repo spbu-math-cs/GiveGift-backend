@@ -9,7 +9,6 @@ def index():
     interests = request.json.get("interests", None)
     num_of_ideas = request.json.get("num_of_ideas", None)
     price_range = request.json.get("price_range", None)
-    # TODO: if interests is None или [] (надо будет посмотреть), возвращаем просто пустой массив, не давая gpt
     if interests is None or num_of_ideas is None or price_range is None:
         return {"response": "500", "message": "4011"}
     if type(interests) is not list:
@@ -18,6 +17,8 @@ def index():
         num_of_ideas = int(num_of_ideas)
     except TypeError:
         return {"response": "500", "message": "4013"}
+    if len(interests) == 0:
+        return []
     if num_of_ideas not in range(1, 11):
         return {"response": "500", "message": "4014"}
     if type(price_range) is not list:  # price interval is list, contains two integers
