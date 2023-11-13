@@ -17,15 +17,15 @@ jwt = JWTManager(app=app)
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
 def register():
-    nickname = request.json.get("nickname", None)
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-    birth_date = request.json.get("birth_date", None)
-    about = request.json.get("about", None)
-    interests = request.json.get("interests", None)
-    if email is None or password is None or data_base.get_user_by_name_or_none(email=email) is not None:
+    nickname = request.json.get("nickname", "")
+    email = request.json.get("email", "")
+    password = request.json.get("password", "")
+    birth_date = request.json.get("birth_date", "")
+    about = request.json.get("about", "")
+    interests = request.json.get("interests", "")
+    if email is "" or password is "" or data_base.get_user_by_name_or_none(email=email) is not "":
         return {"response": "500", "message": "Пользователь с таким email уже существует. Введите другой email!"}
-    if birth_date is not None:
+    if birth_date is not "":
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
@@ -57,9 +57,9 @@ def create_token():
     if email := get_jwt_identity():
         if data_base.get_user_by_name_or_none(email).is_token_actual:
             return {"response": "500", "message": "Token is actual"}
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-    if email is None or password is None or data_base.get_user_by_name_or_none(email) is None:
+    email = request.json.get("email", "")
+    password = request.json.get("password", "")
+    if email is "" or password is "" or data_base.get_user_by_name_or_none(email) is "":
         return {"response": "500", "message": "Пользователя с данным email не существует!"}
     if not data_base.has_user(email, password):
         return {"response": "500", "message": "Неверные имя пользователя или пароль!"}
@@ -69,18 +69,18 @@ def create_token():
 
 
 def set_info() -> dict:
-    user_id = request.json.get("id", None)
-    nickname = request.json.get("nickname", None)
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-    birth_date = request.json.get("birth_date", None)
-    about = request.json.get("about", None)
-    interests = request.json.get("interests", None)
-    if email is None or password is None or \
-            user_id is None or \
-            not data_base.has_user_with_id(user_id) or data_base.get_user_by_name_or_none(email) is not None:
+    user_id = request.json.get("id", "")
+    nickname = request.json.get("nickname", "")
+    email = request.json.get("email", "")
+    password = request.json.get("password", "")
+    birth_date = request.json.get("birth_date", "")
+    about = request.json.get("about", "")
+    interests = request.json.get("interests", "")
+    if email is "" or password is "" or \
+            user_id is "" or \
+            not data_base.has_user_with_id(user_id) or data_base.get_user_by_name_or_none(email) is not "":
         return {"response": "500", "message": "401"}
-    if birth_date is not None:
+    if birth_date is not "":
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
@@ -104,7 +104,7 @@ def get_account_info():
         return set_info()
     email: str = get_jwt_identity()
     user = data_base.get_user_by_name_or_none(email)
-    if user is None:
+    if user is "":
         return {"response": "500", "message": "401"}
     return {
         "id": str(user.id),

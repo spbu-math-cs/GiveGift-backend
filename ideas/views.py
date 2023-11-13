@@ -6,10 +6,10 @@ from ideas.generator import generate_ideas
 
 @app.route('/generate_ideas', methods=["POST"])
 def index():
-    interests = request.json.get("interests", None)
-    num_of_ideas = request.json.get("num_of_ideas", None)
-    price_range = request.json.get("price_range", None)
-    if interests is None or num_of_ideas is None or price_range is None:
+    interests = request.json.get("interests", "")
+    num_of_ideas = request.json.get("num_of_ideas", "")
+    price_range = request.json.get("price_range", "")
+    if interests is "" or num_of_ideas is "" or price_range is "":
         return {"response": "500", "message": "4011"}
     if type(interests) is not list:
         return {"response": "500", "message": "4012"}

@@ -19,9 +19,9 @@ def edit_interest():
     if not data_base.get_user_by_name_or_none(email).is_token_actual:
         return {"response": "500", "message": "Token is not actual"}
 
-    new_interests = request.json.get("new_interests", None)
-    edit_interests = request.json.get("edit_interests", None)
-    if new_interests is None or edit_interests is None:
+    new_interests = request.json.get("new_interests", "")
+    edit_interests = request.json.get("edit_interests", "")
+    if new_interests is "" or edit_interests is "":
         return {"response": "500", "message": "401"}
     if type(new_interests) is not list or type(edit_interests) is not list:
         return {"response": "500", "message": "401"}
