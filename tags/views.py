@@ -21,7 +21,7 @@ def edit_interest():
 
     new_interests = request.json.get("new_interests", "")
     edit_interests = request.json.get("edit_interests", "")
-    if new_interests is "" or edit_interests is "":
+    if new_interests == "" or edit_interests == "":
         return {"response": "500", "message": "401"}
     if type(new_interests) is not list or type(edit_interests) is not list:
         return {"response": "500", "message": "401"}

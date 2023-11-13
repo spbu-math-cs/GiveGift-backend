@@ -9,7 +9,7 @@ def index():
     interests = request.json.get("interests", "")
     num_of_ideas = request.json.get("num_of_ideas", "")
     price_range = request.json.get("price_range", "")
-    if interests is "" or num_of_ideas is "" or price_range is "":
+    if interests == "" or num_of_ideas == "" or price_range == "":
         return {"response": "500", "message": "4011"}
     if type(interests) is not list:
         return {"response": "500", "message": "4012"}
