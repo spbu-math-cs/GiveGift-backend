@@ -29,12 +29,12 @@ def register():
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
-            return {"response": "500", "message": "Date"}
+            return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Дата - не дата!"}
     if type(interests) is not list:
-        return {"response": "500", "message": "List"}
+        return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Список - не список!"}
     for interest in interests:
         if not data_base.has_tag(interest):
-            return {"response": "500", "message": "Invalid interest"}
+            return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!"}
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
     if email := get_jwt_identity():
