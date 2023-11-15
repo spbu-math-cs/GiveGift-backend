@@ -1,12 +1,13 @@
 import json
 import random
 from datetime import timedelta, datetime, timezone
+
 from flask import request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, \
     unset_jwt_cookies, get_jwt_identity, get_jwt, \
     jwt_required
-from DB import data_base
 
+from DB import data_base
 from core import app
 
 app.config["JWT_SECRET_KEY"] = "123456"
@@ -24,27 +25,28 @@ def register():
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
     if nickname == "" or email == "" or password == "":
-        return {"response": "500", "message": "Заполните все поля!"}
+        return "Заполните все поля!", 401
     if data_base.get_user_by_name_or_none(email=email):
-        return {"response": "500", "message": "Пользователь с таким email уже существует!"}
+        return "Пользователь с таким email уже существует!", 401
     if birth_date != "":
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
-            return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Дата - не дата!"}
+            return "Логическая ошибка! Такого быть не должно! Дата - не дата!", 401
     if type(interests) is not list:
-        return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Список - не список!"}
+        return "Логическая ошибка! Такого быть не должно! Список - не список!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
-            return {"response": "500", "message": "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!"}
+            return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
     add_default_preferences(interests)
-    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
+    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
+                          interests=interests)
     # if email := get_jwt_identity():
     #     if data_base.get_user_by_name_or_none(email).is_token_actual:
     #         return {"response": "200", "message": "OK"}  # TODO was loged in
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
-    return {"response": "200", "message": "OK", "access_token": access_token}
+    return {"access_token": access_token}, 200
 
 
 def add_default_preferences(interests) -> None:
@@ -58,18 +60,19 @@ def add_default_preferences(interests) -> None:
 def create_token():
     if email := get_jwt_identity():
         if data_base.get_user_by_name_or_none(email).is_token_actual:
-            return {"response": "500", "message": "Token is actual"}
+            return "Token is actual", 401
     email = request.json.get("email", "")
     password = request.json.get("password", "")
     if email == "" or password == "" or data_base.get_user_by_name_or_none(email) == "":
-        return {"response": "500", "message": "Пользователя с данным email не существует!"}
+        return "Пользователя с данным email не существует!", 401
     if not data_base.has_user(email, password):
-        return {"response": "500", "message": "Неверные имя пользователя или пароль!"}
+        return "Неверные имя пользователя или пароль!", 401
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
-    return {"response": "200", "message": "OK", "access_token": access_token}
+    return {"access_token": access_token}, 200
 
 
+# TODO: Измени ответы сервера на такие, как выше
 def set_info() -> dict:
     user_id = request.json.get("id", "")
     nickname = request.json.get("nickname", "")
@@ -92,7 +95,8 @@ def set_info() -> dict:
     for interest in interests:
         if not data_base.has_tag(interest):
             return {"response": "500", "message": "401"}
-    data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests, nickname=nickname, birth_date=birth_date, password=password)
+    data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
+                                  nickname=nickname, birth_date=birth_date, password=password)
     return {"response": "200", "message": "OK"}
 
 
@@ -123,7 +127,7 @@ def get_account_info():
 def logout():
     if email := get_jwt_identity():
         if not data_base.get_user_by_name_or_none(email).is_token_actual:
-            return {"response": "500", "message": "Token is not actual"}
+            return "Token is not actual", 401
     response = jsonify({"response": "200", "message": "logout successful"})
     unset_jwt_cookies(response)
     data_base.get_user_by_name_or_none(email).is_token_actual = False

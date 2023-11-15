@@ -41,7 +41,7 @@ async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
 async def generate_ideas_or_none(tags: List[str], number_of_ideas: int, titles: List[str], lock: asyncio.Lock):
     if number_of_ideas not in range(1, 11):
         raise RuntimeError("Too much number_of_ideas!")
-    num_of_threads = 10
+    num_of_threads = 1
     finished, unfinished = await asyncio.wait(
         [ask_gpt_or_none(number_of_ideas, tags) for _ in range(num_of_threads)],
         return_when="FIRST_COMPLETED"
