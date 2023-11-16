@@ -63,6 +63,7 @@ export const validatePassword = (password) => {
 Можно еще чек на длину имени (>= 2)
 """
 
+
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
         index = random.randint(0, data_base.get_tags_count() - 1)
@@ -128,11 +129,11 @@ def get_account_info():
         return {"response": "500", "message": "401"}
     return {
         "id": str(user.id),
-        "nickname": user.nickname,
-        "email": user.email,
-        "about": user.about,
+        "nickname": str(user.nickname),
+        "email": str(user.email),
+        "about": str(user.about),
         "birth_date": str(user.birth_date),
-        "interests": user.interests
+        "interests": str(user.interests)
     }, 200
 
 
