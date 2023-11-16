@@ -49,6 +49,20 @@ def register():
     return {"access_token": access_token}, 200
 
 
+""" TODO: Введите эти чекеры:
+export const validateEmail = (email) => {
+    const re = /\S+@\S+\.\S+/;
+    return re.test(email);
+};
+
+export const validatePassword = (password) => {
+    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(\W|_)).{8,}$/;
+    return re.test(password)
+};
+
+Можно еще чек на длину имени (>= 2)
+"""
+
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
         index = random.randint(0, data_base.get_tags_count() - 1)
@@ -119,7 +133,7 @@ def get_account_info():
         "about": user.about,
         "birth_date": str(user.birth_date),
         "interests": user.interests
-    }
+    }, 200
 
 
 @app.route('/logout', methods=["POST"])
