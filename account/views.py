@@ -114,11 +114,11 @@ def get_account_info():
         return {"response": "500", "message": "401"}
     return {
         "id": str(user.id),
-        "nickname": user.nickname,
-        "email": user.email,
-        "about": user.about,
+        "nickname": str(user.nickname),
+        "email": str(user.email),
+        "about": str(user.about),
         "birth_date": str(user.birth_date),
-        "interests": user.interests
+        "interests": str(user.interests)
     }
 
 
