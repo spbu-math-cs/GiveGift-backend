@@ -169,6 +169,7 @@ class DataDecorator:
         return self.__user_provider.get_user_by_name_or_none(email)
 
     def send_friend_request(self, from_user_id: int, to_user_id: int) -> None:
+        pass
         # логика отправки запроса в друзья
 
     def accept_friend_request(self, from_user_id: int, to_user_id: int) -> None:
@@ -184,6 +185,7 @@ class DataDecorator:
         friend.remove_friend(user_id)
 
     def generate_idea_for_friend(self, user_id: int, friend_id: int) -> str:
+        pass
         # логика генерации идеи на основе интересов друга
 
 

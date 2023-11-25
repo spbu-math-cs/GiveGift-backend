@@ -41,9 +41,10 @@ def register():
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
-    # if email := get_jwt_identity():
-    #     if data_base.get_user_by_name_or_none(email).is_token_actual:
-    #         return {"response": "200", "message": "OK"}  # TODO was loged in
+    if current_email := get_jwt_identity():
+        user_or_none = data_base.get_user_by_name_or_none(current_email)
+        if user_or_none is not None and user_or_none.is_token_actual:
+            return {"response": "200", "message": "OK"}
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
