@@ -1,5 +1,6 @@
 import json
 import random
+import re
 from datetime import timedelta, datetime, timezone
 
 from flask import request, jsonify
@@ -26,6 +27,12 @@ def register():
     interests = request.json.get("interests", "")
     if nickname == "" or email == "" or password == "":
         return "Заполните все поля!", 401
+    if len(nickname) < 2:
+        return "Слишком короткий Ник!", 401
+    if not re.fullmatch("\\S+@\\S+\\.\\S+", email):
+        return "Введите корректный адрес электронной почты!", 401
+    if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
+        return "Введите корректный пароль!", 401
     if data_base.get_user_by_name_or_none(email=email):
         return "Пользователь с таким email уже существует!", 401
     if birth_date != "":
@@ -48,21 +55,6 @@ def register():
     access_token = create_access_token(identity=email)
     data_base.get_user_by_name_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
-
-
-""" TODO: Введите эти чекеры:
-export const validateEmail = (email) => {
-    const re = /\S+@\S+\.\S+/;
-    return re.test(email);
-};
-
-export const validatePassword = (password) => {
-    const re = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*(\W|_)).{8,}$/;
-    return re.test(password)
-};
-
-Можно еще чек на длину имени (>= 2)
-"""
 
 
 def add_default_preferences(interests) -> None:
@@ -88,8 +80,7 @@ def create_token():
     return {"access_token": access_token}, 200
 
 
-# TODO: Измени ответы сервера на такие, как выше
-def set_info() -> dict:
+def set_info():
     user_id = request.json.get("id", "")
     nickname = request.json.get("nickname", "")
     email = request.json.get("email", "")
@@ -97,20 +88,26 @@ def set_info() -> dict:
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
-    if email == "" or password == "" or \
-            user_id == "" or \
-            not data_base.has_user_with_id(user_id) or data_base.get_user_by_name_or_none(email) != "":
-        return {"response": "500", "message": "401"}
+    if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
+        return "Заполните поле email!", 401
+    if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
+        return "Введите корректный пароль!", 401
+    if user_id == "":
+        return "Введённый id пуст!", 401
+    if not data_base.has_user_with_id(user_id):
+        return "Нет пользователя с данным id!", 401
+    if data_base.get_user_by_name_or_none(email) is not None:
+        return "Пользователь с данным email уже существует!", 401
     if birth_date != "":
         try:
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
-            return {"response": "500", "message": "401"}
+            return "Логическая ошибка! Дата не парсится!", 401
     if type(interests) is not list:
-        return {"response": "500", "message": "401"}
+        return "Логическая ошибка! Список не парсится!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
-            return {"response": "500", "message": "401"}
+            return "К сожалению, выбранный тег не поддерживается!", 401
     data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date, password=password)
     return {"response": "200", "message": "OK"}
@@ -121,7 +118,7 @@ def set_info() -> dict:
 def get_account_info():
     if email := get_jwt_identity():
         if not data_base.get_user_by_name_or_none(email).is_token_actual:
-            return {"response": "500", "message": "Token is not actual"}
+            return "Token is actual", 401
     if request.method == 'POST':
         return set_info()
     email: str = get_jwt_identity()
@@ -129,13 +126,13 @@ def get_account_info():
     if user == "":
         return {"response": "500", "message": "401"}
     return {
-        "id": str(user.id),
-        "nickname": str(user.nickname),
-        "email": str(user.email),
-        "about": str(user.about),
-        "birth_date": str(user.birth_date),
-        "interests": str(user.interests)
-    }, 200
+               "id": str(user.id),
+               "nickname": str(user.nickname),
+               "email": str(user.email),
+               "about": str(user.about),
+               "birth_date": str(user.birth_date),
+               "interests": str(user.interests)
+           }, 200
 
 
 @app.route('/logout', methods=["POST"])
