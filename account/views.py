@@ -118,13 +118,13 @@ def set_info():
 def get_account_info():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is actual", 401
+            return "Token is not actual", 401
     if request.method == 'POST':
         return set_info()
     email: str = get_jwt_identity()
     user = data_base.get_user_by_email_or_none(email)
-    if user == "":
-        return {"response": "500", "message": "401"}
+    if user is None:
+        return "Не найдено пользователя с таким email!", 401
     return {
                "id": str(user.id),
                "nickname": str(user.nickname),
@@ -132,6 +132,49 @@ def get_account_info():
                "about": str(user.about),
                "birth_date": str(user.birth_date),
                "interests": str(user.interests)
+           }, 200
+
+
+@app.route('/friends', methods=["GET", "POST"])
+@jwt_required()
+def friends():
+    if email := get_jwt_identity():
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
+            return "Token is actual", 401
+    email: str = get_jwt_identity()
+    user = data_base.get_user_by_email_or_none(email)
+    if user is None:
+        return "Не найдено пользователя с таким email!", 401
+    if request.method == 'POST':
+        command = request.json.get("command", "")
+        friend_id = request.json.get("friend_id", "")
+        if command not in ["delete", "request", "remove_request", "add"]:
+            return "Команда подана неверно!", 401
+        try:
+            friend_id = int(friend_id)
+        except TypeError:
+            return "Вместо friend_id подали не число!", 401
+        if not data_base.has_user_with_id(friend_id):
+            return "Упомянутый друг не найден в базе!", 401
+        if command == "delete":
+            if not user.is_friend(friend_id):
+                return "Логическая ошибка! Такого быть не должно!", 401
+            data_base.remove_friend(user.id, friend_id)
+        elif command == "request":
+            data_base.send_friend_request(user.id, friend_id)
+        elif command == "remove_request":
+            if not user.has_application(friend_id):
+                return "Логическая ошибка! Такого быть не должно!", 401
+            data_base.remove_friend_request(user.id, friend_id)
+        elif command == "add":
+            if not user.is_potential_friend(friend_id):
+                return "Логическая ошибка! Такого быть не должно!", 401
+            data_base.accept_friend_request(friend_id, user.id)
+        return {"response": "200", "message": "OK"}
+    return {
+               "friends": user.get_friends(),
+               "potential_friends": user.get_potential_friends(),
+               "applications": user.get_friendship_applications()
            }, 200
 
 

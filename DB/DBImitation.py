@@ -76,6 +76,15 @@ class User:
             return True
         return False
 
+    def get_friends(self) -> list:
+        return self.friends[:]
+
+    def get_potential_friends(self) -> list:
+        return self.potential_friends[:]
+
+    def get_friendship_applications(self) -> list:
+        return self.friendship_applications[:]
+
 
 # some functions to work with DB
 class UsersProvider:
@@ -204,9 +213,6 @@ class DataDecorator:
         user.nickname = nickname
         user.birth_date = birth_date
         user.password = password
-
-    def get_user_by_email(self, email: str) -> User:
-        return self.get_user_by_email_or_none(email)
 
     def send_friend_request(self, from_user_id: int, to_user_id: int) -> None:
         from_user = self.get_user_with_id(from_user_id)
