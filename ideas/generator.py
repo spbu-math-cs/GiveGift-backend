@@ -18,7 +18,7 @@ def generate_ideas(tags: list, num_of_ideas: int, price_range: list):
         asyncio.run(generate_ideas_or_none(tags=tags, number_of_ideas=num_of_ideas, titles=titles, lock=lock))
     except Exception:
         pass
-
+    # TODO: убрать описание
     return list(filter(lambda idea: idea["img_link"] is not None,
                        [
                            {"title": title,

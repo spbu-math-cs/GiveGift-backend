@@ -4,6 +4,7 @@ from datetime import date
 
 class User:
     __max_id = 0
+
     def __init__(self, nickname: str, email: str, birth_date: date, about: str, interests: list, password: str):
         self.id = User.__max_id + 1
         User.__max_id += 1
@@ -15,6 +16,8 @@ class User:
         self.interests = interests
         self.is_token_actual = False
         self.friends = []
+        self.potential_friends = []
+        self.friendship_applications = []
 
     def verify_password(self, password) -> bool:
         return check_password_hash(pwhash=self.password_hash, password=password)
@@ -22,22 +25,59 @@ class User:
     def add_user_tag(self, interest: str) -> None:
         self.interests.append(interest)
 
-    def add_friend(self, friend_id:int) -> None:
+    def add_friend(self, friend_id: int) -> None:
         if friend_id not in self.friends:
             self.friends.append(friend_id)
         else:
             raise AssertionError("Friend has already been added!")
 
-    def remove_friend(self, friend_id:int) -> None:
+    def remove_friend(self, friend_id: int) -> None:
         if friend_id not in self.friends:
             raise AssertionError("This user is not your friend!")
         else:
             self.friends.remove(friend_id)
 
+    def is_friend(self, friend_id: int) -> bool:
+        if friend_id in self.friends:
+            return True
+        return False
+
+    def add_application(self, friend_id: int) -> None:
+        if friend_id not in self.friends:
+            self.friendship_applications.append(friend_id)
+        else:
+            raise AssertionError("Friend has already been added!")
+
+    def remove_application(self, friend_id: int) -> None:
+        if friend_id not in self.friendship_applications:
+            raise AssertionError("This user is not your friend!")
+        else:
+            self.friendship_applications.remove(friend_id)
+
+    def has_application(self, friend_id: int) -> bool:
+        if friend_id in self.friendship_applications:
+            return True
+        return False
+
+    def add_potential_friend(self, friend_id: int) -> None:
+        if friend_id not in self.potential_friends:
+            self.potential_friends.append(friend_id)
+        else:
+            raise AssertionError("Friend has already been added!")
+
+    def remove_potential_friend(self, friend_id: int) -> None:
+        if friend_id not in self.potential_friends:
+            raise AssertionError("This user is not your friend!")
+        else:
+            self.potential_friends.remove(friend_id)
+
+    def is_potential_friend(self, friend_id: int) -> bool:
+        if friend_id in self.potential_friends:
+            return True
+        return False
 
 
 # some functions to work with DB
-
 class UsersProvider:
     def __init__(self):
         # noinspection PyTypeChecker
@@ -69,11 +109,11 @@ class UsersProvider:
         return len(self.__users)
 
     def delete_user(self, user_name: str) -> None:
-        if self.get_user_by_name_or_none(user_name) is None:
+        if self.get_user_by_email_or_none(user_name) is None:
             raise AssertionError("Can't delete user, that is not exists!")
         del [user for user in self.__users if user.nickname == user_name][0]
 
-    def get_user_by_name_or_none(self, email: str) -> User:
+    def get_user_by_email_or_none(self, email: str) -> User:
         try:
             return [user for user in self.__users if user.email == email][0]
         except IndexError:
@@ -88,7 +128,7 @@ class UsersProvider:
             return None
 
     def get_user_tags_by_name(self, email: str) -> list:
-        user = self.get_user_by_name_or_none(email=email)
+        user = self.get_user_by_email_or_none(email=email)
         if user is None:
             raise AssertionError("Can't get user tags, if user is not exists!")
         return user.interests
@@ -118,7 +158,7 @@ class DataDecorator:
         self.__user_provider = UsersProvider()
 
     def has_user(self, email: str, password: str) -> bool:
-        user = self.__user_provider.get_user_by_name_or_none(email=email)
+        user = self.__user_provider.get_user_by_email_or_none(email=email)
         if user is None:
             return False
         return user.verify_password(password)
@@ -147,8 +187,8 @@ class DataDecorator:
             raise AssertionError("Can't create user without email or password!")
         self.__user_provider.create_user(nickname, email, password, about, birth_date, interests)
 
-    def get_user_by_name_or_none(self, email: str) -> User:
-        return self.__user_provider.get_user_by_name_or_none(email=email)
+    def get_user_by_email_or_none(self, email: str) -> User:
+        return self.__user_provider.get_user_by_email_or_none(email=email)
 
     def has_user_with_id(self, user_id: int) -> bool:
         return self.__user_provider.get_user_by_index_or_none(user_id=user_id) is not None
@@ -166,15 +206,33 @@ class DataDecorator:
         user.password = password
 
     def get_user_by_email(self, email: str) -> User:
-        return self.__user_provider.get_user_by_name_or_none(email)
+        return self.get_user_by_email_or_none(email)
 
     def send_friend_request(self, from_user_id: int, to_user_id: int) -> None:
-        pass
-        # логика отправки запроса в друзья
+        from_user = self.get_user_with_id(from_user_id)
+        to_user = self.get_user_with_id(to_user_id)
+        if from_user.is_friend(to_user_id):
+            raise RuntimeError("From_user already is friend of to_user!")
+        from_user.add_application(to_user_id)
+        to_user.add_potential_friend(from_user_id)
+
+    def remove_friend_request(self, from_user_id: int, to_user_id: int) -> None:
+        from_user = self.get_user_with_id(from_user_id)
+        to_user = self.get_user_with_id(to_user_id)
+        if not from_user.has_application(to_user_id):
+            raise RuntimeError("From_user did not send request to to_user!")
+        from_user.remove_application(to_user_id)
+        to_user.remove_potential_friend(from_user_id)
 
     def accept_friend_request(self, from_user_id: int, to_user_id: int) -> None:
         from_user = self.get_user_with_id(from_user_id)
         to_user = self.get_user_with_id(to_user_id)
+        if to_user.is_potential_friend(from_user_id):
+            raise RuntimeError("From_user don't want to tell with you!")
+        if from_user.has_application(to_user_id):
+            raise RuntimeError("From_user don't want to tell with you!")
+        to_user.remove_potential_friend(from_user_id)
+        from_user.remove_application(to_user_id)
         from_user.add_friend(to_user_id)
         to_user.add_friend(from_user_id)
 
@@ -183,10 +241,4 @@ class DataDecorator:
         user.remove_friend(friend_id)
         friend = self.get_user_with_id(friend_id)
         friend.remove_friend(user_id)
-
-    def generate_idea_for_friend(self, user_id: int, friend_id: int) -> str:
-        pass
-        # логика генерации идеи на основе интересов друга
-
-
 # replace all to get a correct behavior (when DB will be ready)

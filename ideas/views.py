@@ -21,7 +21,7 @@ def index():
         return []
     if num_of_ideas not in range(1, 11):
         return {"response": "500", "message": "4014"}
-    if type(price_range) is not list:  # price interval is list, contains two integers
+    if type(price_range) is not list:
         return {"response": "500", "message": "4014"}
     if len(price_range) != 2:
         return {"response": "500", "message": "4015"}

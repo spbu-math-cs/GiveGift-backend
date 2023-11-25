@@ -33,7 +33,7 @@ def register():
         return "Введите корректный адрес электронной почты!", 401
     if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль!", 401
-    if data_base.get_user_by_name_or_none(email=email):
+    if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 401
     if birth_date != "":
         try:
@@ -49,11 +49,11 @@ def register():
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     if current_email := get_jwt_identity():
-        user_or_none = data_base.get_user_by_name_or_none(current_email)
+        user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none is not None and user_or_none.is_token_actual:
             return {"response": "200", "message": "OK"}
     access_token = create_access_token(identity=email)
-    data_base.get_user_by_name_or_none(email).is_token_actual = True
+    data_base.get_user_by_email_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
 
 
@@ -67,16 +67,16 @@ def add_default_preferences(interests) -> None:
 @jwt_required(optional=True)
 def create_token():
     if email := get_jwt_identity():
-        if data_base.get_user_by_name_or_none(email).is_token_actual:
+        if data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is actual", 401
     email = request.json.get("email", "")
     password = request.json.get("password", "")
-    if email == "" or password == "" or data_base.get_user_by_name_or_none(email) == "":
+    if email == "" or password == "" or data_base.get_user_by_email_or_none(email) == "":
         return "Пользователя с данным email не существует!", 401
     if not data_base.has_user(email, password):
         return "Неверные имя пользователя или пароль!", 401
     access_token = create_access_token(identity=email)
-    data_base.get_user_by_name_or_none(email).is_token_actual = True
+    data_base.get_user_by_email_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
 
 
@@ -96,7 +96,7 @@ def set_info():
         return "Введённый id пуст!", 401
     if not data_base.has_user_with_id(user_id):
         return "Нет пользователя с данным id!", 401
-    if data_base.get_user_by_name_or_none(email) is not None:
+    if data_base.get_user_by_email_or_none(email) is not None:
         return "Пользователь с данным email уже существует!", 401
     if birth_date != "":
         try:
@@ -117,12 +117,12 @@ def set_info():
 @jwt_required()
 def get_account_info():
     if email := get_jwt_identity():
-        if not data_base.get_user_by_name_or_none(email).is_token_actual:
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is actual", 401
     if request.method == 'POST':
         return set_info()
     email: str = get_jwt_identity()
-    user = data_base.get_user_by_name_or_none(email)
+    user = data_base.get_user_by_email_or_none(email)
     if user == "":
         return {"response": "500", "message": "401"}
     return {
@@ -139,11 +139,11 @@ def get_account_info():
 @jwt_required()
 def logout():
     if email := get_jwt_identity():
-        if not data_base.get_user_by_name_or_none(email).is_token_actual:
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
     response = jsonify({"response": "200", "message": "logout successful"})
     unset_jwt_cookies(response)
-    data_base.get_user_by_name_or_none(email).is_token_actual = False
+    data_base.get_user_by_email_or_none(email).is_token_actual = False
     return response
 
 

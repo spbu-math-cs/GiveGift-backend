@@ -56,5 +56,3 @@ def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int) 
         return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget)))
     except KeyError:
         return None
-
-print(get_image_link_or_none('whwhwthwthw', 0, 50000))
