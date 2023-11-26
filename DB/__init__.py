@@ -1,3 +1,3 @@
-from .DBImitation import DataDecorator
+from .DB import UserDatabase
 
-data_base = DataDecorator()
+data_base = UserDatabase()
