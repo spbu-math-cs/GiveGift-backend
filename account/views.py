@@ -157,24 +157,24 @@ def friends():
         if data_base.get_user_by_index_or_none(friend_id) is None:
             return "Упомянутый друг не найден в базе!", 401
         if command == "delete":
-            if not user.is_friend(friend_id):
+            if not data_base.is_friend(user.id, friend_id):
                 return "Логическая ошибка! Такого быть не должно!", 401
             data_base.remove_friend(user.id, friend_id)
         elif command == "request":
             data_base.send_friend_request(user.id, friend_id)
         elif command == "remove_request":
-            if not user.has_application(friend_id):
+            if not data_base.has_application(user.id, friend_id):
                 return "Логическая ошибка! Такого быть не должно!", 401
             data_base.remove_friend_request(user.id, friend_id)
         elif command == "add":
-            if not user.is_potential_friend(friend_id):
+            if not data_base.is_potential_friend(user.id, friend_id):
                 return "Логическая ошибка! Такого быть не должно!", 401
             data_base.accept_friend_request(friend_id, user.id)
         return {"response": "200", "message": "OK"}
     return {
-               "friends": user.get_friends(),
-               "potential_friends": user.get_potential_friends(),
-               "applications": user.get_friendship_applications()
+               "friends": data_base.get_friends(user.id),
+               "potential_friends": data_base.get_potential_friends(user.id),
+               "applications": data_base.get_applications(user.id)
            }, 200
 
 

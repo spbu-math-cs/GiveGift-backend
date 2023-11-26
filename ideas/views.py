@@ -20,7 +20,7 @@ def index():
             except TypeError:
                 return {"response": "500", "message": "4011"}  # TODO change error codes
             user = data_base.get_user_by_email_or_none(current_email)
-            if not user.is_friend(friend_id):
+            if not data_base.is_friend(user.id, friend_id):
                 return {"response": "500", "message": "4011"}
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = str(friend.interests)

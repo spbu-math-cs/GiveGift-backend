@@ -244,4 +244,28 @@ class DataDecorator:
         user.remove_friend(friend_id)
         friend = self.get_user_by_index_or_none(friend_id)
         friend.remove_friend(user_id)
+
+    def is_friend(self, user_id: int, friend_id: int) -> bool:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.is_friend(friend_id)
+
+    def has_application(self, user_id: int, friend_id: int) -> bool:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.has_application(friend_id)
+
+    def is_potential_friend(self, user_id: int, friend_id: int) -> bool:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.is_potential_friend(friend_id)
+
+    def get_friends(self, user_id: int) -> list:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.get_friends()
+
+    def get_potential_friends(self, user_id: int) -> list:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.get_potential_friends()
+
+    def get_applications(self, user_id: int) -> list:
+        user = self.get_user_by_index_or_none(user_id)
+        return user.get_friendship_applications()
 # replace all to get a correct behavior (when DB will be ready)
