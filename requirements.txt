@@ -26,3 +26,5 @@ requests_html==0.10.0
 tqdm==4.66.1
 bs4==0.0.1
 g4f==0.1.8.2
+
+SQLAlchemy==2.0.23
