@@ -23,7 +23,7 @@ def index():
             if not data_base.is_friend(user.id, friend_id):
                 return {"response": "500", "message": "4011"}
             friend = data_base.get_user_by_index_or_none(friend_id)
-            interests = str(friend.interests)
+            interests = friend.interests
     if interests == "" or num_of_ideas == "" or price_range == "":
         return {"response": "500", "message": "4011"}
     if type(interests) is not list:

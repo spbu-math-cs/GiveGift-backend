@@ -132,7 +132,7 @@ class UsersProvider:
     def get_user_by_index_or_none(self, user_id: int) -> User:
         try:
             return [user for user in self.__users if user.id == user_id][0]
-        except KeyError:
+        except IndexError:
             # noinspection PyTypeChecker
             return None
 
@@ -230,9 +230,9 @@ class DataDecorator:
     def accept_friend_request(self, from_user_id: int, to_user_id: int) -> None:
         from_user = self.get_user_by_index_or_none(from_user_id)
         to_user = self.get_user_by_index_or_none(to_user_id)
-        if to_user.is_potential_friend(from_user_id):
+        if not to_user.is_potential_friend(from_user_id):
             raise RuntimeError("From_user don't want to tell with you!")
-        if from_user.has_application(to_user_id):
+        if not from_user.has_application(to_user_id):
             raise RuntimeError("From_user don't want to tell with you!")
         to_user.remove_potential_friend(from_user_id)
         from_user.remove_application(to_user_id)
