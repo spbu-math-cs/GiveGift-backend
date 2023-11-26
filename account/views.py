@@ -59,7 +59,7 @@ def register():
 
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
-        index = random.randint(0, data_base.get_tags_count() - 1)
+        index = random.randint(0, data_base.get_count_of_tags() - 1)
         interests.append(data_base.get_tags()[index])
 
 
@@ -94,7 +94,7 @@ def set_info():
         return "Введите корректный пароль!", 401
     if user_id == "":
         return "Введённый id пуст!", 401
-    if not data_base.has_user_with_id(user_id):
+    if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 401
     if data_base.get_user_by_email_or_none(email) is not None:
         return "Пользователь с данным email уже существует!", 401
@@ -154,7 +154,7 @@ def friends():
             friend_id = int(friend_id)
         except TypeError:
             return "Вместо friend_id подали не число!", 401
-        if not data_base.has_user_with_id(friend_id):
+        if data_base.get_user_by_index_or_none(friend_id) is None:
             return "Упомянутый друг не найден в базе!", 401
         if command == "delete":
             if not user.is_friend(friend_id):

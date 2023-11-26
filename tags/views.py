@@ -30,7 +30,7 @@ def edit_interest():
             return "Неверный тип тэга!", 401
         if data_base.has_tag(interest):
             return "Новый тэг не так уж и нов!", 401
-        data_base.create_tag(interest)
+        data_base.add_tag(interest)
     for interest in edit_interests:
         try:
             old_interest = interest["interest_name"]
@@ -41,9 +41,9 @@ def edit_interest():
                 return "Старый тэг отсутствует в базе!", 401
             if data_base.has_tag(new_interest):
                 return "Новый тэг есть в базе!", 401
-            data_base.delete_tag_as(old_interest)
+            data_base.delete_tag(old_interest)
             if new_interest != "":
-                data_base.create_tag(new_interest)
+                data_base.add_tag(new_interest)
             return {"response": "200", "message": "OK"}
         except TypeError:
             return "Неверный тип тэга!", 401

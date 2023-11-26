@@ -1,10 +1,9 @@
 import datetime
 
-import sqlalchemy
-from flask import Flask, render_template, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, DateTime, func, and_
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, Session, relationship
+from sqlalchemy import Integer, String, DateTime, and_
+from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash

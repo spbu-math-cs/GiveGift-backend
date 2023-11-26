@@ -175,12 +175,12 @@ class DataDecorator:
     def has_tag(self, tag: str) -> bool:
         return tag in self.__tag_provider.get_tags()
 
-    def create_tag(self, tag: str) -> None:
+    def add_tag(self, tag: str) -> None:
         if self.has_tag(tag):
             raise AssertionError("Can't add tag, that is exists!")
         self.__tag_provider.add_tag(tag)
 
-    def delete_tag_as(self, tag: str) -> None:
+    def delete_tag(self, tag: str) -> None:
         if not self.has_tag(tag):
             raise AssertionError("Can't delete tag, that is not exists!")
         self.__tag_provider.delete_tag(tag)
@@ -188,7 +188,7 @@ class DataDecorator:
     def get_tags(self) -> list:
         return self.__tag_provider.get_tags()
 
-    def get_tags_count(self) -> int:
+    def get_count_of_tags(self) -> int:
         return len(self.__tag_provider.get_tags())
 
     def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date, interests: list) -> None:
@@ -199,14 +199,11 @@ class DataDecorator:
     def get_user_by_email_or_none(self, email: str) -> User:
         return self.__user_provider.get_user_by_email_or_none(email=email)
 
-    def has_user_with_id(self, user_id: int) -> bool:
-        return self.__user_provider.get_user_by_index_or_none(user_id=user_id) is not None
-
-    def get_user_with_id(self, user_id: int) -> User:
+    def get_user_by_index_or_none(self, user_id: int) -> User:
         return self.__user_provider.get_user_by_index_or_none(user_id=user_id)
 
     def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str, birth_date: date) -> None:
-        user = self.get_user_with_id(user_id)
+        user = self.get_user_by_index_or_none(user_id)
         user.about = about
         user.email = email
         user.interests = interests
@@ -215,24 +212,24 @@ class DataDecorator:
         user.password = password
 
     def send_friend_request(self, from_user_id: int, to_user_id: int) -> None:
-        from_user = self.get_user_with_id(from_user_id)
-        to_user = self.get_user_with_id(to_user_id)
+        from_user = self.get_user_by_index_or_none(from_user_id)
+        to_user = self.get_user_by_index_or_none(to_user_id)
         if from_user.is_friend(to_user_id):
             raise RuntimeError("From_user already is friend of to_user!")
         from_user.add_application(to_user_id)
         to_user.add_potential_friend(from_user_id)
 
     def remove_friend_request(self, from_user_id: int, to_user_id: int) -> None:
-        from_user = self.get_user_with_id(from_user_id)
-        to_user = self.get_user_with_id(to_user_id)
+        from_user = self.get_user_by_index_or_none(from_user_id)
+        to_user = self.get_user_by_index_or_none(to_user_id)
         if not from_user.has_application(to_user_id):
             raise RuntimeError("From_user did not send request to to_user!")
         from_user.remove_application(to_user_id)
         to_user.remove_potential_friend(from_user_id)
 
     def accept_friend_request(self, from_user_id: int, to_user_id: int) -> None:
-        from_user = self.get_user_with_id(from_user_id)
-        to_user = self.get_user_with_id(to_user_id)
+        from_user = self.get_user_by_index_or_none(from_user_id)
+        to_user = self.get_user_by_index_or_none(to_user_id)
         if to_user.is_potential_friend(from_user_id):
             raise RuntimeError("From_user don't want to tell with you!")
         if from_user.has_application(to_user_id):
@@ -243,8 +240,8 @@ class DataDecorator:
         to_user.add_friend(from_user_id)
 
     def remove_friend(self, user_id: int, friend_id: int) -> None:
-        user = self.get_user_with_id(user_id)
+        user = self.get_user_by_index_or_none(user_id)
         user.remove_friend(friend_id)
-        friend = self.get_user_with_id(friend_id)
+        friend = self.get_user_by_index_or_none(friend_id)
         friend.remove_friend(user_id)
 # replace all to get a correct behavior (when DB will be ready)
