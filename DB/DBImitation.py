@@ -249,11 +249,11 @@ class DataDecorator:
         user = self.get_user_by_index_or_none(user_id)
         return user.is_friend(friend_id)
 
-    def has_application(self, user_id: int, friend_id: int) -> bool:
+    def has_outgoing_request(self, user_id: int, friend_id: int) -> bool:
         user = self.get_user_by_index_or_none(user_id)
         return user.has_application(friend_id)
 
-    def is_potential_friend(self, user_id: int, friend_id: int) -> bool:
+    def has_incoming_request(self, user_id: int, friend_id: int) -> bool:
         user = self.get_user_by_index_or_none(user_id)
         return user.is_potential_friend(friend_id)
 
