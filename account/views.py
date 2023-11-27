@@ -16,7 +16,7 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 jwt = JWTManager(app=app)
 
 
-# TODO: ПОРА ПИСАТЬ ТЕСТЫ НА БЭК!!!!!!!!!
+# TODO: ПОРА ПИСАТЬ ТЕСТЫ НА БЭК!!!!!!!!! (давно пора)
 
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
@@ -34,8 +34,9 @@ def register():
     if not re.fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Введите корректный адрес электронной почты!", 401
     if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль!", 401
-        # TODO: Можно еще подсказку бахнуть по типу какой пароль ожидают от юзера
+        return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
+               "буквы латинского алфавита, цифры. Палоль должен состоять не менее чем из" \
+               "восьми символов!", 401
     if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 401
     if birth_date != "":
@@ -54,7 +55,7 @@ def register():
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
-            return {"response": "200", "message": "OK"}
+            return "OK", 200
     access_token = create_access_token(identity=email)
     data_base.get_user_by_email_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
@@ -113,7 +114,25 @@ def set_info():
             return "К сожалению, выбранный тег не поддерживается!", 401
     data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date, password=password)
-    return {"response": "200", "message": "OK"}
+    return "OK", 200
+
+
+def get_safe_user_info(user) -> dict:
+    return {
+        "id": str(user.id),
+        "nickname": str(user.nickname),
+        "email": str(user.email),
+        "about": str(user.about),
+        "birth_date": str(user.birth_date),
+        "interests": str(user.interests)
+    }
+
+
+def get_user_info_by_id(user_id: int):
+    user = data_base.get_user_by_index_or_none(user_id)
+    if user is None:
+        raise IndexError("Unsupported None value return!")
+    return get_safe_user_info(user)
 
 
 @app.route('/account', methods=["GET", "POST"])
@@ -125,49 +144,24 @@ def get_account_info():
     if request.method == 'POST':
         return set_info()
     user = data_base.get_user_by_email_or_none(email)
-    return {
-        "id": str(user.id),
-        "nickname": str(user.nickname),
-        "email": str(user.email),
-        "about": str(user.about),
-        "birth_date": str(user.birth_date),
-        "interests": str(user.interests)
-    }, 200
+    return get_safe_user_info(user), 200
 
 
-@app.route('/friends', methods=["GET"])
-@jwt_required()
-def friends():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    user = data_base.get_user_by_email_or_none(email)
-
-    # TODO: Исправь potential_friends на incoming_requests,
-    #  applications на outgoing_requests ВЕЗДЕ
-    return {
-        # TODO: Должен выдаваться список User-object'ов в виде словарей, а не просто id
-        #       делается это, вроде, так
-
-        # TODO: Раз уж get_user_by_index_or_none имеет пароль в поле ответа,
-        #  то напиши в data_base функцию по типу get_user_info_by_index_or_none, где не будет всякой конфиденциальной информации
-        "friends": list(map(lambda user_id: data_base.get_user_by_index_or_none(user_id).__dict__,
-                            data_base.get_friends(user.id))),
-        "potential_friends": list(map(lambda user_id: data_base.get_user_by_index_or_none(user_id).__dict__,
-                                      data_base.get_potential_friends(user.id))),
-        "applications": list(map(lambda user_id: data_base.get_user_by_index_or_none(user_id).__dict__,
-                                 data_base.get_applications(user.id)))
-    }, 200
-
-
-# TODO: Тебе, вроде как, позволяет инкапсуляция классов называть функции одинаковыми именами, хоть это и плохой паттерн
-@app.route('/delete_friend', methods=["DELETE"])
+@app.route('/friend', methods=["GET", "DELETE", "PUT", "POST", "ACCEPT"])
 @jwt_required()
 def delete_friend():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
     user = data_base.get_user_by_email_or_none(email)
+    if request.method == "GET":
+        return {
+            "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
+            "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_incoming_requests(user.id))),
+            "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_outgoing_requests(user.id)))
+        }, 200
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)
@@ -177,107 +171,18 @@ def delete_friend():
         return "Упомянутый друг не найден в базе!", 401
     if not data_base.is_friend(user.id, friend_id):
         return "Логическая ошибка! Такого быть не должно!", 401
-    data_base.remove_friend(user.id, friend_id)
-
-    # TODO: Исправить записи вида {"response": "200", "message": "OK"} на то, что ниже
-    return "OK", 200
-
-
-# TODO: Есть такое ощущение, что три практически идентичные функции можно обьединить
-#  в одну /friend_request и работать по разному в зависимости от метода запроса
-#  отправлять friend_request, когда метод POST,
-#  отклонять, когда метод DELETE,
-#  принимать, когда метод PUT
-@app.route('/send_friend_request', methods=["POST"])
-@jwt_required()
-def friend_request():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    user = data_base.get_user_by_email_or_none(email)
-    friend_id = request.json.get("friend_id", "")
-    try:
-        friend_id = int(friend_id)
-    except ValueError:
-        return "Вместо friend_id подали не число!", 401
-    if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
-    data_base.send_friend_request(user.id, friend_id)
-    return {"response": "200", "message": "OK"}
-
-
-@app.route('/remove_friend_request', methods=["PUT"])
-@jwt_required()
-def remove_friend_request():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    user = data_base.get_user_by_email_or_none(email)
-    friend_id = request.json.get("friend_id", "")
-    try:
-        friend_id = int(friend_id)
-    except ValueError:
-        return "Вместо friend_id подали не число!", 401
-    if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
-    if not data_base.has_application(user.id, friend_id):
-        return "Логическая ошибка! Такого быть не должно!", 401
-    data_base.remove_friend_request(user.id, friend_id)
-    return {"response": "200", "message": "OK"}
-
-@app.route('/accept_friend_request', methods=["POST"])
-@jwt_required()
-def accept_friend_request():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    user = data_base.get_user_by_email_or_none(email)
-    friend_id = request.json.get("friend_id", "")
-    try:
-        friend_id = int(friend_id)
-    except ValueError:
-        return "Вместо friend_id подали не число!", 401
-    if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
+    if request.method == "DELETE":
+        data_base.remove_friend(user.id, friend_id)
+    if request.method == "POST":
+        data_base.send_friend_request(user.id, friend_id)
+    if request.method == "PUT":
+        if not data_base.has_application(user.id, friend_id):
+            return "Логическая ошибка! Такого быть не должно!", 401
+        data_base.remove_friend_request(user.id, friend_id)
     if not data_base.is_potential_friend(user.id, friend_id):
         return "Логическая ошибка! Такого быть не должно!", 401
     data_base.accept_friend_request(friend_id, user.id)
-    return {"response": "200", "message": "OK"}
-# TODO -----------------------------------------------------
-
-
-# TODO: вот это я вообще не понимаю зачем
-@app.route('/search', methods=["POST"])
-@jwt_required()
-def search():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    person_id = request.json.get("person_id", "")
-    email = request.json.get("email", "")
-    if person_id == "":
-        if email == "":
-            return "Логическая ошибка! Такого быть не должно!", 401
-        person = data_base.get_user_by_email_or_none(email)
-        if person is None:
-            return "По запросу ничего не найдено!", 401
-        return {
-            "id": person.id,
-            "email": person.email,
-            "nickname": person.nickname
-        }
-    try:
-        person_id = int(person_id)
-    except ValueError:
-        return "Логическая ошибка! Такого быть не должно!", 401
-    person = data_base.get_user_by_index_or_none(person_id)
-    if person is None:
-        return "По запросу ничего не найдено!", 401
-    return {
-        "id": person.id,
-        "email": person.email,
-        "nickname": person.nickname
-    }
+    return "OK", 200
 
 
 @app.route('/logout', methods=["POST"])
@@ -286,7 +191,7 @@ def logout():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
-    response = jsonify({"response": "200", "message": "logout successful"})
+    response = jsonify({"logout successful", 200})
     unset_jwt_cookies(response)
     data_base.get_user_by_email_or_none(email).is_token_actual = False
     return response

@@ -62,8 +62,8 @@ class User(UserMixin, Base):
 
     # TODO: Check, why it doesn't work (+ fix m2m)
     # friends = relationship('User', secondary='user_friend', backref='User')
-    # potential_friends = relationship('User', secondary='user_potential_friend', backref='User')
-    # friendship_applications = relationship('User', secondary='user_friendship_application', backref='User')
+    # incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
+    # outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')
 
     def __repr__(self):
         return '<User {}>'.format(self.nickname)

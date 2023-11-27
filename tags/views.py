@@ -44,7 +44,7 @@ def edit_interest():
             data_base.delete_tag(old_interest)
             if new_interest != "":
                 data_base.add_tag(new_interest)
-            return {"response": "200", "message": "OK"}
+            return "OK", 200
         except TypeError:
             return "Неверный тип тэга!", 401
-    return {"response": "200", "message": "OK"}
+    return "OK", 200

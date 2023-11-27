@@ -16,8 +16,8 @@ class User:
         self.interests = interests
         self.is_token_actual = False
         self.friends = []
-        self.potential_friends = []
-        self.friendship_applications = []
+        self.incoming_requests = []
+        self.outgoing_requests = []
 
     def verify_password(self, password) -> bool:
         return check_password_hash(pwhash=self.password_hash, password=password)
@@ -44,46 +44,46 @@ class User:
 
     def add_application(self, friend_id: int) -> None:
         if friend_id not in self.friends:
-            self.friendship_applications.append(friend_id)
+            self.outgoing_requests.append(friend_id)
         else:
             raise AssertionError("Friend has already been added!")
 
     def remove_application(self, friend_id: int) -> None:
-        if friend_id not in self.friendship_applications:
+        if friend_id not in self.outgoing_requests:
             raise AssertionError("This user is not your friend!")
         else:
-            self.friendship_applications.remove(friend_id)
+            self.outgoing_requests.remove(friend_id)
 
     def has_application(self, friend_id: int) -> bool:
-        if friend_id in self.friendship_applications:
+        if friend_id in self.outgoing_requests:
             return True
         return False
 
     def add_potential_friend(self, friend_id: int) -> None:
-        if friend_id not in self.potential_friends:
-            self.potential_friends.append(friend_id)
+        if friend_id not in self.incoming_requests:
+            self.incoming_requests.append(friend_id)
         else:
             raise AssertionError("Friend has already been added!")
 
     def remove_potential_friend(self, friend_id: int) -> None:
-        if friend_id not in self.potential_friends:
+        if friend_id not in self.incoming_requests:
             raise AssertionError("This user is not your friend!")
         else:
-            self.potential_friends.remove(friend_id)
+            self.incoming_requests.remove(friend_id)
 
     def is_potential_friend(self, friend_id: int) -> bool:
-        if friend_id in self.potential_friends:
+        if friend_id in self.incoming_requests:
             return True
         return False
 
     def get_friends(self) -> list:
         return self.friends[:]
 
-    def get_potential_friends(self) -> list:
-        return self.potential_friends[:]
+    def get_incoming_requests(self) -> list:
+        return self.incoming_requests[:]
 
-    def get_friendship_applications(self) -> list:
-        return self.friendship_applications[:]
+    def get_outgoing_requests(self) -> list:
+        return self.outgoing_requests[:]
 
 
 # some functions to work with DB
@@ -261,11 +261,11 @@ class DataDecorator:
         user = self.get_user_by_index_or_none(user_id)
         return user.get_friends()
 
-    def get_potential_friends(self, user_id: int) -> list:
+    def get_incoming_requests(self, user_id: int) -> list:
         user = self.get_user_by_index_or_none(user_id)
-        return user.get_potential_friends()
+        return user.get_incoming_requests()
 
-    def get_applications(self, user_id: int) -> list:
+    def get_outgoing_requests(self, user_id: int) -> list:
         user = self.get_user_by_index_or_none(user_id)
-        return user.get_friendship_applications()
+        return user.get_outgoing_requests()
 # replace all to get a correct behavior (when DB will be ready)
