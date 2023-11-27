@@ -169,13 +169,16 @@ def friend():
         return "Упомянутый друг не найден в базе!", 401
     if not data_base.is_friend(user.id, friend_id):
         return "Логическая ошибка! Такого быть не должно!", 401
-    data_base.remove_friend(user.id, friend_id)
-    return "OK", 200
+
+    if request.method == "DELETE":
+        data_base.remove_friend(user.id, friend_id)
+        return "OK", 200
+    return "Something went wrong", 404
 
 
-@app.route('/outgoing_friend_requests', methods=["DELETE", "POST"])
+@app.route('/outgoing_friend_request', methods=["DELETE", "POST"])
 @jwt_required()
-def outgoing_friend_requests():
+def outgoing_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
@@ -194,13 +197,15 @@ def outgoing_friend_requests():
         return "OK", 200
     if not data_base.has_outgoing_request(user.id, friend_id):
         return "Логическая ошибка! Такого быть не должно!", 401
-    data_base.remove_friend_request(user.id, friend_id)
-    return "OK", 200
+    if request.method == "DELETE":
+        data_base.remove_friend_request(user.id, friend_id)
+        return "OK", 200
+    return "Something went wrong", 404
 
 
-@app.route('/incoming_friend_requests', methods=["DELETE", "POST"])
+@app.route('/incoming_friend_request', methods=["DELETE", "POST"])
 @jwt_required()
-def incoming_friend_requests():
+def incoming_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
@@ -217,8 +222,10 @@ def incoming_friend_requests():
     if request.method == "DELETE":
         data_base.remove_friend_request(friend_id, user.id)
         return "OK", 200
-    data_base.accept_friend_request(friend_id, user.id)
-    return "OK", 200
+    if request.method == "POST":
+        data_base.accept_friend_request(friend_id, user.id)
+        return "OK", 200
+    return "Something went wrong", 404
 
 
 @app.route('/logout', methods=["POST"])
