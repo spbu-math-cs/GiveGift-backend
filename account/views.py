@@ -145,9 +145,9 @@ def get_account_info():
     return get_safe_user_info(user), 200
 
 
-@app.route('/friend', methods=["GET", "DELETE", "PUT", "POST", "ACCEPT"])
+@app.route('/friend', methods=["GET", "DELETE", "PUT", "POST", "HEAD"])
 @jwt_required()
-def delete_friend():
+def friend():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
@@ -167,16 +167,21 @@ def delete_friend():
         return "Вместо friend_id подали не число!", 401
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
-    if not data_base.is_friend(user.id, friend_id):
-        return "Логическая ошибка! Такого быть не должно!", 401
     if request.method == "DELETE":
+        if not data_base.is_friend(user.id, friend_id):
+            return "Логическая ошибка! Такого быть не должно!", 401
         data_base.remove_friend(user.id, friend_id)
+        return "OK", 200
     if request.method == "POST":
+        if data_base.has_application(user.id, friend_id):
+            return "Логическая ошибка! Такого быть не должно!", 401
         data_base.send_friend_request(user.id, friend_id)
+        return "OK", 200
     if request.method == "PUT":
         if not data_base.has_application(user.id, friend_id):
             return "Логическая ошибка! Такого быть не должно!", 401
         data_base.remove_friend_request(user.id, friend_id)
+        return "OK", 200
     if not data_base.is_potential_friend(user.id, friend_id):
         return "Логическая ошибка! Такого быть не должно!", 401
     data_base.accept_friend_request(friend_id, user.id)
@@ -189,7 +194,7 @@ def logout():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
-    response = jsonify({"logout successful", 200})
+    response = jsonify({"message": "logout successful", "code": 200})
     unset_jwt_cookies(response)
     data_base.get_user_by_email_or_none(email).is_token_actual = False
     return response
