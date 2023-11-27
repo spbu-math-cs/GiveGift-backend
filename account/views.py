@@ -168,7 +168,7 @@ def friend():
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
     if not data_base.is_friend(user.id, friend_id):
-        return "Логическая ошибка! Такого быть не должно!", 401
+        return "Эти люди - не друзья!", 401
 
     if request.method == "DELETE":
         data_base.remove_friend(user.id, friend_id)
@@ -192,11 +192,11 @@ def outgoing_friend_request():
         return "Упомянутый друг не найден в базе!", 401
     if request.method == "POST":
         if data_base.has_outgoing_request(user.id, friend_id):
-            return "Логическая ошибка! Такого быть не должно!", 401
+            return "Уже есть исходящий запрос к этому другу!", 401
         data_base.send_friend_request(user.id, friend_id)
         return "OK", 200
     if not data_base.has_outgoing_request(user.id, friend_id):
-        return "Логическая ошибка! Такого быть не должно!", 401
+        return "Не было исходящего запроса к этому другу!", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(user.id, friend_id)
         return "OK", 200
