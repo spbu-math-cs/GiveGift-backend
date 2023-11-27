@@ -16,8 +16,6 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 jwt = JWTManager(app=app)
 
 
-# TODO: ПОРА ПИСАТЬ ТЕСТЫ НА БЭК!!!!!!!!! (давно пора)
-
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
 def register():
