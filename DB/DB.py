@@ -2,7 +2,7 @@ import datetime
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, DateTime, and_
+from sqlalchemy import Integer, String, DateTime, and_, Boolean
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
@@ -41,7 +41,7 @@ class Base(DeclarativeBase):
 class Interest(Base):
     __tablename__ = "Interest"
 
-    id = sa.Column(Integer, primary_key=True)
+    id = sa.Column(Integer, primary_key=True, autoincrement=True)
     name = sa.Column(String(64), index=True, unique=True, nullable=False)
 
     def __repr__(self):
@@ -51,13 +51,14 @@ class Interest(Base):
 class User(UserMixin, Base):
     __tablename__ = "User"
 
-    id = sa.Column(Integer, primary_key=True)
+    id = sa.Column(Integer, primary_key=True, autoincrement=True)
     nickname = sa.Column(String(64), index=True, unique=True, nullable=False)
     birth_date = sa.Column(DateTime, index=True)
-    about = sa.Column(String(500), index=True)
+    about = sa.Column(String(500))
     email = sa.Column(String(120), index=True, unique=True, nullable=False)
     interests = relationship('Interest', secondary='user_interest', backref='User')
     password_hash = sa.Column(String(128))
+    is_token_actual = sa.Column(Boolean, index=True)
 
     # TODO: Check, why it doesn't work (+ fix m2m)
     # friends = relationship('User', secondary='user_friend', backref='User')
@@ -76,9 +77,9 @@ class User(UserMixin, Base):
 
 class UserDatabase:
 
-    def __init__(self):
+    def __init__(self, database):
         self.app = Flask(__name__)
-        self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///user.db"
+        self.app.config["SQLALCHEMY_DATABASE_URI"] = f"{database}"
         self.db = SQLAlchemy(model_class=Base)
         self.db.init_app(self.app)
         self.user_interest_m2m = self.db.Table(
@@ -115,11 +116,10 @@ class UserDatabase:
             self.db.drop_all()
 
     @_raises_database_exit_exception
-    def create_user(self, id: int, nickname: str, email: str, birth_date: datetime.datetime, about: str,
+    def create_user(self, nickname: str, email: str, birth_date: datetime.datetime, about: str,
                     password: str) -> None:
         with self.app.app_context():
             user = User()
-            user.id = id
             user.nickname = nickname
             user.about = about
             user.set_password(password)
@@ -129,42 +129,46 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def add_tag(self, id: int, name: str) -> None:
+    def add_tag(self, name: str) -> None:
         with self.app.app_context():
-            interest = Interest(id=id, name=name)
+            interest = Interest(name=name)
             self.db.session.add(interest)
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def add_user_tag(self, user_id: int, interest_id: int) -> None:
-        user = self.get_user_by_index_or_none(user_id)
-        interest = self.get_tag_by_index_or_none(interest_id)
-        if user and interest:
-            self.db.session.execute(sa.insert(self.user_interest_m2m).values(user_id=user_id, interest_id=interest_id))
-            self.db.session.commit()
-        else:
-            raise DatabaseExitException("No such user or interest!")
+    def add_user_tag(self, user_name: str, interest_name: str) -> None:
+        with self.app.app_context():
+            user = self.get_user_by_name_or_none(user_name)
+            interest = self.get_tag_by_name_or_none(interest_name)
+            if user and interest:
+                self.db.session.execute(sa.insert(self.user_interest_m2m).values(user_id=user.id, interest_id=interest.id))
+                self.db.session.commit()
+            else:
+                raise DatabaseExitException("No such user or interest!")
 
     @_raises_database_exit_exception
-    def delete_user_tag(self, user_id: int, interest_id: int) -> None:
+    def delete_user_tag(self, user_name: str, interest_name: str) -> None:
         with self.app.app_context():
+            user = self.get_user_by_name_or_none(user_name)
+            interest = self.get_tag_by_name_or_none(interest_name)
             self.db.session.execute(sa.delete(self.user_interest_m2m).where(and_(
-                self.user_interest_m2m.c.user_id == user_id, self.user_interest_m2m.c.interest_id == interest_id)))
+                self.user_interest_m2m.c.user_id == user.id, self.user_interest_m2m.c.interest_id == interest.id)))
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def delete_user(self, user_id: int) -> None:
+    def delete_user(self, user_name: str) -> None:
         with self.app.app_context():
-            self.clear_user_tags(user_id)
-            self.db.session.query(User).filter_by(id=user_id).delete()
+            self.clear_user_tags(user_name)
+            self.db.session.query(User).filter_by(nickname=user_name).delete()
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def delete_tag(self, interest_id: int) -> None:
+    def delete_tag(self, interest_name: str) -> None:
         with self.app.app_context():
+            interest = self.get_tag_by_name_or_none(interest_name)
             self.db.session.execute(
-                sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.interest_id == interest_id))
-            self.db.session.query(Interest).filter_by(id=interest_id).delete()
+                sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.interest_id == interest.id))
+            self.db.session.query(Interest).filter_by(id=interest.id).delete()
             self.db.session.commit()
 
     @_raises_database_exit_exception
@@ -174,7 +178,7 @@ class UserDatabase:
             return user
 
     @_raises_database_exit_exception
-    def get_user_tags_by_name(self, nickname: str) -> User:
+    def get_user_by_name_or_none(self, nickname: str) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).filter_by(nickname=nickname).first()
             return user
@@ -218,32 +222,35 @@ class UserDatabase:
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_tags(self, user_id: int) -> [Interest]:
+    def get_user_tags(self, user_name: str) -> [Interest]:
         with self.app.app_context():
+            user = self.get_user_by_name_or_none(user_name)
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
-                    self.user_interest_m2m.c.user_id == user_id)).fetchall()
+                    self.user_interest_m2m.c.user_id == user.id)).fetchall()
             interests = []
             for interest_id in select:
                 interests.append(self.db.session.query(Interest).filter_by(id=interest_id[0]).first())
             return interests
 
     @_raises_database_exit_exception
-    def get_users_with_tag(self, interest_id: int) -> [User]:
+    def get_users_with_tag(self, interest_name: str) -> [User]:
         with self.app.app_context():
+            interest = self.get_tag_by_name_or_none(interest_name)
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.user_id).where(
-                    self.user_interest_m2m.c.interest_id == interest_id)).fetchall()
+                    self.user_interest_m2m.c.interest_id == interest.id)).fetchall()
             users = []
             for user_id in select:
                 users.append(self.db.session.query(User).filter_by(id=user_id[0]).first())
             return users
 
     @_raises_database_exit_exception
-    def clear_user_tags(self, user_id: int) -> None:
+    def clear_user_tags(self, user_name: str) -> None:
         with self.app.app_context():
+            user = self.get_user_by_name_or_none(user_name)
             self.db.session.execute(
-                sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user_id))
+                sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user.id))
             self.db.session.commit()
 
     @_raises_database_exit_exception
@@ -348,7 +355,7 @@ class UserDatabase:
         with self.app.app_context():
             self.db.session.execute(
                 sa.insert(self.user_user_m2m_friendship_application).values(user_id=user_id,
-                                                                      potential_friend_id=potential_friend_id))
+                                                                            potential_friend_id=potential_friend_id))
             self.db.session.commit()
 
     @_raises_database_exit_exception
@@ -375,3 +382,31 @@ class UserDatabase:
         with self.app.app_context():
             friends = self.get_applications(user_id)
             return potential_friend_id in list(map(lambda x: x.id, friends))
+
+    # send/accept/decline friend request
+    @_raises_database_exit_exception
+    def send_friend_request(self, from_user_id: int, to_user_id: int) -> None:
+        with self.app.app_context():
+            if self.is_friend(from_user_id, to_user_id):
+                raise RuntimeError("From_user already is friend of to_user!")
+            self.add_application(from_user_id, to_user_id)
+            self.add_potential_friend(to_user_id, from_user_id)
+
+    @_raises_database_exit_exception
+    def remove_friend_request(self, from_user_id: int, to_user_id: int) -> None:
+        with self.app.app_context():
+            if not self.has_application(from_user_id, to_user_id):
+                raise RuntimeError("From_user did not send request to to_user!")
+            self.remove_application(from_user_id, to_user_id)
+            self.remove_potential_friend(to_user_id, from_user_id)
+
+    @_raises_database_exit_exception
+    def accept_friend_request(self, from_user_id: int, to_user_id: int) -> None:
+        with self.app.app_context():
+            if not self.is_potential_friend(to_user_id, from_user_id):
+                raise RuntimeError("From_user don't want to tell with you!")
+            if not self.has_application(from_user_id, to_user_id):
+                raise RuntimeError("From_user don't want to tell with you!")
+            self.remove_potential_friend(to_user_id, from_user_id)
+            self.remove_application(from_user_id, to_user_id)
+            self.add_friend(from_user_id, to_user_id)
