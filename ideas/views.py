@@ -10,7 +10,7 @@ from DB import data_base
 @jwt_required(optional=True)
 def index():
     interests = request.json.get("interests", "")
-    num_of_ideas = request.json.get("num_of_ideas", "")
+    num_of_ideas = "20"  # request.json.get("num_of_ideas", "") TODO убрать этот костыль!
     price_range = request.json.get("price_range", "")
     if current_email := get_jwt_identity():
         friend_id = request.json.get("friend_id", "")
@@ -24,6 +24,7 @@ def index():
                 return "Указанный человек не является Вашим другом!", 500
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = friend.interests
+            print(interests)
     if interests == "":
         return "Интересы друга не указаны!", 500
     if num_of_ideas == "":
