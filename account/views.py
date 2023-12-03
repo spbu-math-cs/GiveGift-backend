@@ -145,9 +145,9 @@ def get_account_info():
     return get_safe_user_info(user), 200
 
 
-@app.route('/friend', methods=["GET", "DELETE"])
+@app.route('/friends', methods=["GET", "DELETE"])
 @jwt_required()
-def friend():
+def friends():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
