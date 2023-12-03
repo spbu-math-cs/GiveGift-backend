@@ -18,14 +18,18 @@ def index():
             try:
                 friend_id = int(friend_id)
             except TypeError:
-                return "4011", 500
+                return "Передаваемый id друга должен быть числом!", 500
             user = data_base.get_user_by_email_or_none(current_email)
             if not data_base.is_friend(user.id, friend_id):
-                return "4011", 500
+                return "Указанный человек не является Вашим другом!", 500
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = friend.interests
-    if interests == "" or num_of_ideas == "" or price_range == "":
-        return "Не все значения указаны!", 500
+    if interests == "":
+        return "Интересы друга не указаны!", 500
+    if num_of_ideas == "":
+        return "Число идей не указано!", 500
+    if price_range == "":
+        return "Ценовой диапазон не указан!", 500
     if type(interests) is not list:
         return "Интересы должны быть представлены в виде списка!", 500
     try:
