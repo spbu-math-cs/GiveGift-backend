@@ -10,8 +10,8 @@ def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]
 
 
 async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
-    if num_of_ideas <= 0 or num_of_ideas > 10:
-        raise RuntimeError("num_of_ideas not in 1..10 is not supported")
+    """if num_of_ideas <= 0 or num_of_ideas > 10:
+        raise RuntimeError("num_of_ideas not in 1..10 is not supported")"""
     try:
         result: str = ""
         response: str = (await asyncio.gather(
@@ -39,8 +39,8 @@ async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
 # Будем запускать гонкой: если один из запросов выдал быстрее чем остальные, остальные отменяются
 # Понимаю, что wait якобы устарел, но в gather'е нет такого флага, как FIRST_COMPLETED. Когда добавят, тогда и поговорим
 async def generate_ideas_or_none(tags: List[str], number_of_ideas: int, titles: List[str], lock: asyncio.Lock):
-    if number_of_ideas not in range(1, 11):
-        raise RuntimeError("Too much number_of_ideas!")
+    """if number_of_ideas not in range(1, 11):
+        raise RuntimeError("Too much number_of_ideas!")"""
     num_of_threads = 1
     finished, unfinished = await asyncio.wait(
         [ask_gpt_or_none(number_of_ideas, tags) for _ in range(num_of_threads)],

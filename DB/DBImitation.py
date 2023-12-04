@@ -98,6 +98,22 @@ class UsersProvider:
                 about="",
                 interests=[],
                 password="12345"
+            ),
+            User(
+                nickname="Amirelkanov",
+                email="amirelkanov0504@gmail.com",
+                birth_date=None,
+                about="",
+                interests=['Тест'],
+                password="123"
+            ),
+            User(
+                nickname="Test",
+                email="amirelkanov@yandex.ru",
+                birth_date=None,
+                about="",
+                interests=['Тест'],
+                password="123"
             )
         ]
         # initialize DB

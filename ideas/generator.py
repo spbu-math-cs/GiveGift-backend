@@ -8,8 +8,9 @@ def generate_ideas(tags: list, num_of_ideas: int, price_range: list):
     titles = []
 
     # todo: вскоре вообще пользователю запретим указывать, сколько идей он хочет
-    if num_of_ideas > 10 or num_of_ideas <= 0:
+    """if num_of_ideas > 10 or num_of_ideas <= 0:
         raise RuntimeError("Unsupported. num_of_ideas not in 1..10")
+"""
 
     ioloop = asyncio.new_event_loop()
     asyncio.set_event_loop(ioloop)

@@ -1,3 +1,5 @@
+import sys
+
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -24,7 +26,6 @@ def index():
                 return "Указанный человек не является Вашим другом!", 500
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = friend.interests
-            print(interests)
     if interests == "":
         return "Интересы друга не указаны!", 500
     if num_of_ideas == "":
@@ -39,8 +40,10 @@ def index():
         return "Число предпочтений должно быть числом!", 500
     if len(interests) == 0:
         return []
-    if num_of_ideas not in range(1, 11):
-        return "Не поддерживается число меньше 0 или больше 10!", 500
+
+    # TODO: эх ты!)
+    """if num_of_ideas not in range(1, 11):
+        return "Не поддерживается число меньше 0 или больше 10!", 500"""
     if type(price_range) is not list:
         return "Ценовой диапазон должен быть списком!", 500
     if len(price_range) != 2:
