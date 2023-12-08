@@ -109,7 +109,7 @@ def set_info():
         return "Логическая ошибка! Список не парсится!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
-            return "К сожалению, выбранный тег не поддерживается!", 401
+            return "К сожалению, выбранный тег не поддерживается!", 401  # TODO add while register
     data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date, password=password)
     return "OK", 200
@@ -143,6 +143,26 @@ def get_account_info():
         return set_info()
     user = data_base.get_user_by_email_or_none(email)
     return get_safe_user_info(user), 200
+
+
+@app.route('/get_user_info/<i>', methods=["GET"])
+@jwt_required(optional=True)
+def get_user_info(i):
+    email = get_jwt_identity()
+    try:
+        i = int(i)
+    except ValueError:
+        return 404
+    if email is not None and i == -1:
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
+            return "Token is not actual", 401
+        user = data_base.get_user_by_email_or_none(email)
+        return get_safe_user_info(user), 200
+    if questioned_user := data_base.get_user_by_index_or_none(i):
+        return get_safe_user_info(questioned_user), 200
+    if i == -1:
+        return "Зарегистрируйтесь или войдите!", 500
+    return "Не существует человека с таким id!", 500
 
 
 @app.route('/friends', methods=["GET", "DELETE"])
@@ -218,7 +238,7 @@ def incoming_friend_request():
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
     if not data_base.has_incoming_request(user.id, friend_id):
-        return "Логическая ошибка! Такого быть не должно!", 401
+        return "Нет входящего запроса от упомянутого друга", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(friend_id, user.id)
         return "OK", 200

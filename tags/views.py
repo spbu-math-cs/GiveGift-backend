@@ -30,6 +30,8 @@ def edit_interest():
             return "Неверный тип тэга!", 401
         if data_base.has_tag(interest):
             return "Новый тэг не так уж и нов!", 401
+        if interest == "":
+            return "Недопустимое имя тэга!", 401
         data_base.add_tag(interest)
     for interest in edit_interests:
         try:

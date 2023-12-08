@@ -12,8 +12,8 @@ from DB import data_base
 @jwt_required(optional=True)
 def index():
     interests = request.json.get("interests", "")
-    num_of_ideas = "20"  # request.json.get("num_of_ideas", "") TODO убрать этот костыль!
-    price_range = request.json.get("price_range", "")
+    num_of_ideas = "10"  # request.json.get("num_of_ideas", "") TODO убрать этот костыль!
+    price_range = request.json.get("price_range", "")  # TODO  целых неотрицательных чисел, первое не превышает второе
     if current_email := get_jwt_identity():
         friend_id = request.json.get("friend_id", "")
         if friend_id != "":
