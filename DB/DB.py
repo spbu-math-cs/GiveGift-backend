@@ -432,11 +432,12 @@ class UserDatabase:
             return self.get_applications(user_id)
 
     @_raises_database_exit_exception
-    def has_incoming_requests(self, user_id: int, friend_id: int) -> [User]:
+    def has_incoming_requests(self, user_id: int, friend_id: int) -> bool:
         with self.app.app_context():
             return self.is_potential_friend(user_id, friend_id)
 
     @_raises_database_exit_exception
-    def has_outgoing_requests(self, user_id: int, friend_id: int) -> [User]:
+    def has_outgoing_requests(self, user_id: int, friend_id: int) -> bool:
         with self.app.app_context():
             return self.has_application(user_id, friend_id)
+

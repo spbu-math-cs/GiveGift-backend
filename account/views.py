@@ -211,11 +211,11 @@ def outgoing_friend_request():
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
     if request.method == "POST":
-        if data_base.has_outgoing_request(user.id, friend_id):
+        if data_base.has_outgoing_requests(user.id, friend_id):
             return "Уже есть исходящий запрос к этому другу!", 401
         data_base.send_friend_request(user.id, friend_id)
         return "OK", 200
-    if not data_base.has_outgoing_request(user.id, friend_id):
+    if not data_base.has_outgoing_requests(user.id, friend_id):
         return "Не было исходящего запроса к этому другу!", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(user.id, friend_id)
@@ -237,7 +237,7 @@ def incoming_friend_request():
         return "Вместо friend_id подали не число!", 401
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
-    if not data_base.has_incoming_request(user.id, friend_id):
+    if not data_base.has_incoming_requests(user.id, friend_id):
         return "Нет входящего запроса от упомянутого друга", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(friend_id, user.id)
