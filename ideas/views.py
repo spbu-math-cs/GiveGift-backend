@@ -39,7 +39,7 @@ def index():
         return "Ценовой диапазон может содержать лишь 2 значения!", 500
     try:
         price_range = [int(price_range[0]), int(price_range[1])]
-    except TypeError:
+    except ValueError:
         return "Ценовой диапазон должен быть задан числами!", 500
     if price_range[0] < 0 or price_range[1] < price_range[0]:
         return "Ценовой диапазон должен быть задан неотрицательными числами, первое не превышает второго!", 500
