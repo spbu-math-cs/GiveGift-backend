@@ -141,7 +141,8 @@ class UserDatabase:
             user = self.get_user_by_name_or_none(user_name)
             interest = self.get_tag_by_name_or_none(interest_name)
             if user and interest:
-                self.db.session.execute(sa.insert(self.user_interest_m2m).values(user_id=user.id, interest_id=interest.id))
+                self.db.session.execute(
+                    sa.insert(self.user_interest_m2m).values(user_id=user.id, interest_id=interest.id))
                 self.db.session.commit()
             else:
                 raise DatabaseExitException("No such user or interest!")
@@ -232,6 +233,14 @@ class UserDatabase:
             for interest_id in select:
                 interests.append(self.db.session.query(Interest).filter_by(id=interest_id[0]).first())
             return interests
+
+    @_raises_database_exit_exception
+    def get_user_tags_by_name(self, email: str) -> [Interest]:
+        with self.app.app_context():
+            user = self.get_user_by_email_or_none(email)
+            if user is None:
+                raise AssertionError("Can't get user's tags if user doesn't exist")
+            return self.get_user_tags(user.id)
 
     @_raises_database_exit_exception
     def get_users_with_tag(self, interest_name: str) -> [User]:
@@ -410,3 +419,24 @@ class UserDatabase:
             self.remove_potential_friend(to_user_id, from_user_id)
             self.remove_application(from_user_id, to_user_id)
             self.add_friend(from_user_id, to_user_id)
+
+    # duplicate existed methods in here (not my fault)
+    @_raises_database_exit_exception
+    def get_incoming_requests(self, user_id: int) -> [User]:
+        with self.app.app_context():
+            return self.get_potential_friends(user_id)
+
+    @_raises_database_exit_exception
+    def get_outgoing_requests(self, user_id: int) -> [User]:
+        with self.app.app_context():
+            return self.get_applications(user_id)
+
+    @_raises_database_exit_exception
+    def has_incoming_requests(self, user_id: int, friend_id: int) -> [User]:
+        with self.app.app_context():
+            return self.is_potential_friend(user_id, friend_id)
+
+    @_raises_database_exit_exception
+    def has_outgoing_requests(self, user_id: int, friend_id: int) -> [User]:
+        with self.app.app_context():
+            return self.has_application(user_id, friend_id)
