@@ -47,7 +47,7 @@ def index():
     return generate_ideas(interests, price_range)
 
 
-@app.route('/messages', methods=["GET", "POST"])
+@app.route('/__messages', methods=["GET", "POST"])
 @jwt_required()
 def messages():
     if email := get_jwt_identity():
@@ -63,18 +63,19 @@ def messages():
             ideas = []
             while len(ideas) == 0:
                 ideas = generate_ideas(requested_user.interests, [0, 1000])
-            user.add_message(
+            data_base.add_message(
+                user.id,
                 f"Подари {requested_user.nickname} {ideas[0]['title']}",
                 datetime.datetime.now()
             )
     if request.method == "GET":
-        return user.get_messages, 200
+        return data_base.get_messages(user.id), 200
     message_id = request.json.get("id", "")
     try:
         message_id = int(message_id)
     except ValueError:
         return "Вместо message_id подали не число!", 401
-    if user.has_message_with_id(message_id):
+    if data_base.has_message_with_id(user.id, message_id):
         return "Нет такого сообщения!", 401
-    user.delete_message_with_id(message_id)
+    data_base.delete_message_with_id(user.id, message_id)
     return "OK", 200

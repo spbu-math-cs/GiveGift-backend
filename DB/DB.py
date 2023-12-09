@@ -61,9 +61,9 @@ class User(Base):
     is_token_actual = sa.Column(Boolean, index=True)
 
     # TODO: Check, why it doesn't work (+ fix m2m)
-    # friends = relationship('User', secondary='user_friend', backref='User')
-    # incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
-    # outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')
+    # __friends = relationship('User', secondary='user_friend', backref='User')
+    # __incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
+    # __outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')
 
     def __repr__(self):
         return '<User {}>'.format(self.nickname)
@@ -284,11 +284,11 @@ class UserDatabase:
                 'email': email,
                 'birth_date': birth_date,
                 'about': about,
-                'password_hash': generate_password_hash(password)
+                '__password_hash': generate_password_hash(password)
             }, synchronize_session=False)
             self.db.session.commit()
 
-    # friends part
+    # __friends part
     @_raises_database_exit_exception
     def add_friend(self, user_id: int, friend_id: int) -> None:
         with self.app.app_context():
@@ -322,7 +322,7 @@ class UserDatabase:
             friends = self.get_friends(user_id)
             return friend_id in list(map(lambda x: x.id, friends))
 
-    # potential friends part
+    # potential __friends part
 
     @_raises_database_exit_exception
     def add_potential_friend(self, user_id: int, potential_friend_id: int) -> None:

@@ -76,10 +76,10 @@ def return_two_friends(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token2)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 1
-    assert len(response.json["outgoing_requests"]) == 0
-    assert response.json["incoming_requests"][0]["id"] == user1_id
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 1
+    assert len(response.json["__outgoing_requests"]) == 0
+    assert response.json["__incoming_requests"][0]["id"] == user1_id
     response = client.post("/incoming_friend_request",
                            headers={"Authorization": "Bearer {}".format(token2)},
                            json={
@@ -90,10 +90,10 @@ def return_two_friends(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token2)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 1
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
-    assert response.json["friends"][0]["id"] == user1_id
+    assert len(response.json["__friends"]) == 1
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
+    assert response.json["__friends"][0]["id"] == user1_id
     return token1, user1_id, token2, user2_id
 
 
@@ -115,15 +115,15 @@ def test_remove_friend(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token2)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token1)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
 
 
 @pytest.mark.order(2)
@@ -139,15 +139,15 @@ def test_remove_friend_request(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token1)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token2)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
 
 
 def send_outgoing_request(client):
@@ -155,9 +155,9 @@ def send_outgoing_request(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token1)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 0
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 0
     response = client.post("/outgoing_friend_request",
                            headers={"Authorization": "Bearer {}".format(token1)},
                            json={
@@ -168,8 +168,8 @@ def send_outgoing_request(client):
     response = client.get("/friend",
                           headers={"Authorization": "Bearer {}".format(token1)})
     assert response.status_code == 200
-    assert len(response.json["friends"]) == 0
-    assert len(response.json["incoming_requests"]) == 0
-    assert len(response.json["outgoing_requests"]) == 1
-    assert response.json["outgoing_requests"][0]["id"] == user2_id
+    assert len(response.json["__friends"]) == 0
+    assert len(response.json["__incoming_requests"]) == 0
+    assert len(response.json["__outgoing_requests"]) == 1
+    assert response.json["__outgoing_requests"][0]["id"] == user2_id
     return token1, user1_id, token2, user2_id

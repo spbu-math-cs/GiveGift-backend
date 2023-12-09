@@ -47,7 +47,7 @@ def register():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
-    # add_default_preferences(interests)
+    add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     if current_email := get_jwt_identity():
@@ -94,7 +94,7 @@ def set_info():
         return "Заполните поле email!", 401
     if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль!", 401
-    if user_id == "":
+    if user_id == "":  # TODO check if not a number
         return "Введённый id пуст!", 401
     if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 401
@@ -211,11 +211,11 @@ def outgoing_friend_request():
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
     if request.method == "POST":
-        if data_base.has_outgoing_requests(user.id, friend_id):
+        if data_base.has_outgoing_request(user.id, friend_id):
             return "Уже есть исходящий запрос к этому другу!", 401
         data_base.send_friend_request(user.id, friend_id)
         return "OK", 200
-    if not data_base.has_outgoing_requests(user.id, friend_id):
+    if not data_base.has_outgoing_request(user.id, friend_id):
         return "Не было исходящего запроса к этому другу!", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(user.id, friend_id)
@@ -237,7 +237,7 @@ def incoming_friend_request():
         return "Вместо friend_id подали не число!", 401
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
-    if not data_base.has_incoming_requests(user.id, friend_id):
+    if not data_base.has_incoming_request(user.id, friend_id):
         return "Нет входящего запроса от упомянутого друга", 401
     if request.method == "DELETE":
         data_base.remove_friend_request(friend_id, user.id)
