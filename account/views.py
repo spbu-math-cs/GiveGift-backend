@@ -47,7 +47,7 @@ def register():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
-    add_default_preferences(interests)
+    # add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     if current_email := get_jwt_identity():
@@ -61,7 +61,7 @@ def register():
 
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
-        index = random.randint(0, data_base.get_count_of_tags() - 1)
+        index = random.randint(0, data_base.get_count_of_tags())
         interests.append(data_base.get_tags()[index])
 
 

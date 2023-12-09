@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+#from flask_login import UserMixin
 
 
 class DatabaseExitException(Exception):
@@ -48,7 +48,7 @@ class Interest(Base):
         return "<Interest '{}'>".format(self.name)
 
 
-class User(UserMixin, Base):
+class User(Base):
     __tablename__ = "User"
 
     id = sa.Column(Integer, primary_key=True, autoincrement=True)
