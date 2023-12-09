@@ -1,4 +1,5 @@
 import datetime
+import random
 
 from flask import request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -54,8 +55,18 @@ def messages():
             return "Token is not actual", 401
     user = data_base.get_user_by_email_or_none(email)
     if datetime.datetime.now() - user.last_time_seen > datetime.timedelta(days=3):
-        user.last_time_seen = datetime.datetime.now()
-        user.add_message("", datetime.datetime.now())
+        requested_users = data_base.get_friends(user.id)
+        if len(requested_users) > 0:
+            user.last_time_seen = datetime.datetime.now()
+            requested_user_id = requested_users[random.randint(0, len(requested_users) - 1)]
+            requested_user = data_base.get_user_by_index_or_none(requested_user_id)
+            ideas = []
+            while len(ideas) == 0:
+                ideas = generate_ideas(requested_user.interests, [0, 1000])
+            user.add_message(
+                f"Подари {requested_user.nickname} {ideas[0]['title']}",
+                datetime.datetime.now()
+            )
     if request.method == "GET":
         return user.get_messages, 200
     message_id = request.json.get("id", "")
