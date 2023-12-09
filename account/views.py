@@ -11,7 +11,7 @@ from flask_jwt_extended import JWTManager, create_access_token, \
 from DB import data_base
 from core import app
 
-app.config["JWT_SECRET_KEY"] = "123456"
+app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[random.randint(0, 9)] for _ in range(random.randint(8, 80))])
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 jwt = JWTManager(app=app)
 
@@ -33,7 +33,7 @@ def register():
         return "Введите корректный адрес электронной почты!", 401
     if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
-               "буквы латинского алфавита, цифры. Палоль должен состоять не менее чем из" \
+               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
                "восьми символов!", 401
     if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 401
@@ -109,7 +109,7 @@ def set_info():
         return "Логическая ошибка! Список не парсится!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
-            return "К сожалению, выбранный тег не поддерживается!", 401  # TODO add while register
+            return "К сожалению, выбранный тег не поддерживается!", 401
     data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date, password=password)
     return "OK", 200

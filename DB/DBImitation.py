@@ -1,3 +1,5 @@
+import datetime
+
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 
@@ -18,6 +20,9 @@ class User:
         self.friends = []
         self.incoming_requests = []
         self.outgoing_requests = []
+        self.messages = {}
+        self.last_time_seen = datetime.datetime.now()
+        self.max_message_id = 0
 
     def verify_password(self, password) -> bool:
         return check_password_hash(pwhash=self.password_hash, password=password)
@@ -84,6 +89,26 @@ class User:
 
     def get_outgoing_requests(self) -> list:
         return self.outgoing_requests[:]
+
+    def delete_message_with_id(self, message_id: int):
+        if message_id in self.messages.keys():
+            del self.messages[message_id]
+        else:
+            raise IndexError("Have not this id!")
+
+    def add_message(self, text: str, addition_date: datetime.datetime):
+        self.max_message_id += 1
+        self.messages[self.max_message_id] = {
+            "text": text,
+            "addition_date": addition_date,
+            "id": self.max_message_id
+        }
+
+    def get_messages(self):
+        return self.messages[:]
+
+    def has_message_with_id(self, message_id: int):
+        return message_id in self.messages.keys()
 
 
 # some functions to work with DB
