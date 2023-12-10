@@ -50,6 +50,14 @@ class Interest(Base):
         return "<Interest '{}'>".format(self.name)
 
 
+class Message(Base):
+    __tablename__ = "Message"
+
+    id = sa.Column(Integer, primary_key=True, autoincrement=True)
+    text = sa.Column(String(500))
+    addition_date = sa.Column(DateTime, index=True)
+
+
 class User(Base):
     __tablename__ = "User"
 
@@ -60,7 +68,7 @@ class User(Base):
     email = sa.Column(String(120), index=True, unique=True, nullable=False)
     password_hash = sa.Column(String(128))
     is_token_actual = sa.Column(Boolean, index=True)
-    last_time_seen = sa.Column(DateTime)
+    last_time_seen = sa.Column(DateTime, index=True)
 
     # TODO: Check, why it doesn't work (+ fix m2m)
     # __interests = relationship('Interest', secondary='user_interest', backref='User')
@@ -104,6 +112,11 @@ class UserDatabase:
             "user_friendship_application",
             sa.Column("user_id", sa.ForeignKey('User.id'), primary_key=True),
             sa.Column("potential_friend_id", sa.ForeignKey('User.id'), primary_key=True)
+        )
+        self.user_message_m2m = self.db.Table(
+            "user_message",
+            sa.Column("user_id", sa.ForeignKey('User.id'), primary_key=True),
+            sa.Column("message_id", sa.ForeignKey('Message.id'), primary_key=True)
         )
 
     # TODO: check why foreign keys work so bad
@@ -471,4 +484,43 @@ class UserDatabase:
     @_raises_database_exit_exception
     def has_incoming_request(self, user_id: int, friend_id: int) -> bool:
         return self.has_incoming_requests(user_id, friend_id)
+
+    # messages
+    @_raises_database_exit_exception
+    def add_message(self, user_id: int, text: str, addition_date: datetime.datetime) -> None:
+        with self.app.app_context():
+            message = Message()
+            message.text = text
+            message.addition_date = addition_date
+            self.db.session.add(message)
+            self.db.session.commit()
+            self.db.session.execute(sa.insert(self.user_message_m2m).values(user_id=user_id, message_id=message.id))
+            self.db.session.commit()
+
+    @_raises_database_exit_exception
+    def delete_message_with_id(self, user_id: int, message_id: int) -> None:
+        with self.app.app_context():
+            self.db.session.execute(
+                sa.delete(self.user_message_m2m).where(
+                    and_(self.user_message_m2m.c.user_id == user_id,
+                         self.user_message_m2m.c.message_id == message_id)))
+            self.db.session.query(Message).filter_by(id=message_id).delete()
+            self.db.session.commit()
+
+    @_raises_database_exit_exception
+    def get_messages(self, user_id: int) -> [Message]:
+        with self.app.app_context():
+            select = self.db.session.execute(
+                sa.select(self.user_message_m2m).where(self.user_message_m2m.c.user_id == user_id)
+            ).fetchall()
+            messages = []
+            for message_id in select:
+                messages.append(self.db.session.query(Message).filter_by(id=message_id[0]).first())
+            return messages
+
+    @_raises_database_exit_exception
+    def has_message_with_id(self, user_id: int, message_id: int) -> bool:
+        with self.app.app_context():
+            messages = self.get_messages(user_id)
+            return message_id in list(map(lambda x: x.id, messages))
 
