@@ -74,8 +74,12 @@ def create_token():
             return "Token is actual", 401
     email = request.json.get("email", "")
     password = request.json.get("password", "")
-    if email == "" or password == "" or data_base.get_user_by_email_or_none(email) == "":
+    if data_base.get_user_by_email_or_none(email) == "":
         return "Пользователя с данным email не существует!", 401
+    if email == "":
+        return "Почта не была указана!", 401
+    if password == "":
+        return "Введите пароль!", 401
     if not data_base.has_user(email, password):
         return "Неверные имя пользователя или пароль!", 401
     access_token = create_access_token(identity=email)
