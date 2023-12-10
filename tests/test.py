@@ -114,3 +114,42 @@ def test_register_unavailable_interest(client):
     })
     assert response.status_code == 401
     assert "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!" in response.data.decode('utf-8')
+
+
+def test_login_success(client):
+    # Добавьте пользователя в базу данных
+    data_base.create_user("testuser", "test@test.com", "password123",'be', date(1600, 1, 1), [])
+
+    response = client.post("/login", json={
+        "email": "test@test.com",
+        "password": "password123"
+    })
+    assert response.status_code == 200
+    assert "access_token" in response.data.decode('utf-8')
+
+def test_login_failed(client):
+    # Добавьте пользователя в базу данных
+    data_base.create_user("testuser", "test@testaaaa.com", "password123",'be', date(1600, 1, 1), [])
+
+    response = client.post("/login", json={
+        "email": "taaest@test.com",
+        "password": "password123"
+    })
+    assert response.status_code == 401
+    assert "Неверные имя пользователя или пароль!" in response.data.decode('utf-8')
+
+def test_login_missing_password(client):
+    response = client.post("/login", json={
+        "email": "test@test.com",
+        "password": ""
+    })
+    assert response.status_code == 401
+    assert "Введите пароль!" in response.data.decode('utf-8')
+
+def test_login_missing_email(client):
+    response = client.post("/login", json={
+        "email": "",
+        "password": "123"
+    })
+    assert response.status_code == 401
+    assert "Почта не была указана!" in response.data.decode('utf-8')
