@@ -1,6 +1,7 @@
 import json
 import random
 import re
+import sys
 from datetime import timedelta, datetime, timezone
 
 from flask import request, jsonify
@@ -153,14 +154,16 @@ def get_user_info(i):
         i = int(i)
     except ValueError:
         return 404
-    if email is not None and i == -1:
+    if email is not None and i == 0:
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
         user = data_base.get_user_by_email_or_none(email)
+        print(get_safe_user_info(user), file=sys.stderr)
         return get_safe_user_info(user), 200
     if questioned_user := data_base.get_user_by_index_or_none(i):
+        print(get_safe_user_info(questioned_user), file=sys.stderr)
         return get_safe_user_info(questioned_user), 200
-    if i == -1:
+    if i == 0:
         return "Зарегистрируйтесь или войдите!", 500
     return "Не существует человека с таким id!", 500
 
