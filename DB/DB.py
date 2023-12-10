@@ -7,7 +7,7 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
-#from flask_login import UserMixin
+# from flask_login import UserMixin
 
 
 class DatabaseExitException(Exception):
@@ -56,11 +56,12 @@ class User(Base):
     birth_date = sa.Column(DateTime, index=True)
     about = sa.Column(String(500))
     email = sa.Column(String(120), index=True, unique=True, nullable=False)
-    interests = relationship('Interest', secondary='user_interest', backref='User')
     password_hash = sa.Column(String(128))
     is_token_actual = sa.Column(Boolean, index=True)
+    last_time_seen = sa.Column(DateTime)
 
     # TODO: Check, why it doesn't work (+ fix m2m)
+    # __interests = relationship('Interest', secondary='user_interest', backref='User')
     # __friends = relationship('User', secondary='user_friend', backref='User')
     # __incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
     # __outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')
@@ -125,6 +126,7 @@ class UserDatabase:
             user.set_password(password)
             user.email = email
             user.birth_date = birth_date
+            user.last_time_seen = datetime.datetime.now()
             self.db.session.add(user)
             self.db.session.commit()
 
