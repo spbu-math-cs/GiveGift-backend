@@ -7,6 +7,8 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
+
+
 # from flask_login import UserMixin
 
 
@@ -442,4 +444,31 @@ class UserDatabase:
     def has_outgoing_requests(self, user_id: int, friend_id: int) -> bool:
         with self.app.app_context():
             return self.has_application(user_id, friend_id)
+
+    # INTERFACE
+    @_raises_database_exit_exception
+    def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: datetime.date,
+                    interests: list) -> None:
+        self.create_user(nickname, email, datetime.datetime.combine(birth_date, datetime.datetime.min.time()), about,
+                         password)
+        user = self.get_user_by_email_or_none(email)
+        for i in interests:
+            if not self.has_tag(i):
+                self.add_tag(i)
+            self.add_user_tag(user.nickname, i)
+
+    @_raises_database_exit_exception
+    def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str,
+                            birth_date: datetime.date) -> None:
+        self.set_to_user_with_id(user_id, nickname, email,
+                                 datetime.datetime.combine(birth_date, datetime.datetime.min.time()), about,
+                                 password)
+
+    @_raises_database_exit_exception
+    def has_outgoing_request(self, user_id: int, friend_id: int) -> bool:
+        return self.has_outgoing_requests(user_id, friend_id)
+
+    @_raises_database_exit_exception
+    def has_incoming_request(self, user_id: int, friend_id: int) -> bool:
+        return self.has_incoming_requests(user_id, friend_id)
 
