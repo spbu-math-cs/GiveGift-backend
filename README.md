@@ -228,7 +228,7 @@
 
 
 ### Interests
-* `/get_all_interests`, `GET`
+* ### `/get_all_interests`, `GET`
   
   _Получить список всех интересов_
   #### Вывод:
