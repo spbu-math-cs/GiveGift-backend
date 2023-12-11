@@ -62,8 +62,10 @@ def register():
 
 def add_default_preferences(interests) -> None:
     for add_preference in range(5):
-        index = random.randint(0, data_base.get_count_of_tags())
-        interests.append(data_base.get_tags()[index])
+        tag_count = data_base.get_count_of_tags()
+        if tag_count > 1:
+            index = random.randint(0, tag_count - 1)
+            interests.append(data_base.get_tags()[index])
 
 
 @app.route('/login', methods=["POST"])
@@ -127,7 +129,8 @@ def get_safe_user_info(user) -> dict:
         "email": str(user.email),
         "about": str(user.about),
         "birth_date": str(user.birth_date),
-        "interests": str(user.interests)
+        "interests": user.interests,
+        "friends": data_base.get_friends(user.id)
     }
 
 
