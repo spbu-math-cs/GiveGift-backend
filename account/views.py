@@ -1,7 +1,6 @@
 import json
 import random
 import re
-import sys
 from datetime import timedelta, datetime, timezone
 
 from flask import request, jsonify
@@ -20,7 +19,7 @@ jwt = JWTManager(app=app)
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
 def register():
-    nickname = request.json.get("nickname", "")
+    nickname = request.json.get("nickname", "")  # TODO forbid add myself in friends
     email = request.json.get("email", "")
     password = request.json.get("password", "")
     birth_date = request.json.get("birth_date", "")
@@ -167,11 +166,19 @@ def get_user_info(i):
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
         user = data_base.get_user_by_email_or_none(email)
-        print(get_safe_user_info(user), file=sys.stderr)
-        return get_safe_user_info(user), 200
+        user_info = get_safe_user_info(user)
+        user_info["is_me"] = True
+        return user_info, 200
     if questioned_user := data_base.get_user_by_index_or_none(i):
-        print(get_safe_user_info(questioned_user), file=sys.stderr)
-        return get_safe_user_info(questioned_user), 200
+        user_info = get_safe_user_info(questioned_user)
+        user_info["is_me"] = False
+        if email is not None:
+            if not data_base.get_user_by_email_or_none(email).is_token_actual:
+                return "Token is not actual", 401
+            user = data_base.get_user_by_email_or_none(email)
+            user_info = get_safe_user_info(user)
+            user_info["is_me"] = (user.id == questioned_user.id)
+        return user_info, 200
     if i == 0:
         return "Зарегистрируйтесь или войдите!", 500
     return "Не существует человека с таким id!", 500
