@@ -133,8 +133,8 @@ class UserDatabase:
             self.db.drop_all()
 
     @_raises_database_exit_exception
-    def create_user(self, nickname: str, email: str, birth_date: date, about: str,
-                    password: str) -> None:
+    def create_user_base(self, nickname: str, email: str, birth_date: date, about: str,
+                         password: str) -> None:
         with self.app.app_context():
             user = User()
             user.nickname = nickname
@@ -463,8 +463,8 @@ class UserDatabase:
     @_raises_database_exit_exception
     def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date,
                     interests: list) -> None:
-        self.create_user(nickname, email, birth_date, about,
-                         password)
+        self.create_user_base(nickname, email, birth_date, about,
+                              password)
         user = self.get_user_by_email_or_none(email)
         for i in interests:
             if not self.has_tag(i):
@@ -527,4 +527,3 @@ class UserDatabase:
         with self.app.app_context():
             messages = self.get_messages(user_id)
             return message_id in list(map(lambda x: x.id, messages))
-

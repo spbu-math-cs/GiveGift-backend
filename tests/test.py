@@ -74,7 +74,7 @@ def test_register_invalid_email(client):
 
 def test_register_existing_user(client):
     existing_email = "existing@flask.flask"
-    data_base.create_user("ExistingUser", existing_email, "T7Rts2l3O99P#", 'be', date(1600, 1, 1), [])
+    data_base.create_user_base("ExistingUser", existing_email, "T7Rts2l3O99P#", 'be', date(1600, 1, 1), [])
     response = client.post("/register", json={
         "nickname": "NewUser",
         "email": existing_email,
@@ -118,7 +118,7 @@ def test_register_unavailable_interest(client):
 
 def test_login_success(client):
     # Добавьте пользователя в базу данных
-    data_base.create_user("testuser", "test@test.com", "password123",'be', date(1600, 1, 1), [])
+    data_base.create_user_base("testuser", "test@test.com", "password123", 'be', date(1600, 1, 1), [])
 
     response = client.post("/login", json={
         "email": "test@test.com",
@@ -129,7 +129,7 @@ def test_login_success(client):
 
 def test_login_failed(client):
     # Добавьте пользователя в базу данных
-    data_base.create_user("testuser", "test@testaaaa.com", "password123",'be', date(1600, 1, 1), [])
+    data_base.create_user_base("testuser", "test@testaaaa.com", "password123", 'be', date(1600, 1, 1), [])
 
     response = client.post("/login", json={
         "email": "taaest@test.com",
