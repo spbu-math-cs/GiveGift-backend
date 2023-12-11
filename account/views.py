@@ -50,7 +50,7 @@ def register():
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
     add_default_preferences(interests)
-    data_base.create_user_base(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
+    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                                interests=interests)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
