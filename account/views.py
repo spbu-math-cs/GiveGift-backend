@@ -43,6 +43,8 @@ def register():
             birth_date = datetime.strptime(birth_date, "%m-%d").date()
         except ValueError:
             return "Логическая ошибка! Такого быть не должно! Дата - не дата!", 401
+    else:
+        birth_date = None
     if type(interests) is not list:
         return "Логическая ошибка! Такого быть не должно! Список - не список!", 401
     for interest in interests:
@@ -275,7 +277,7 @@ def refresh_expiring_jwts(response):
     try:
         exp_timestamp = get_jwt()["exp"]
         now = datetime.now(timezone.utc)
-        target_timestamp = datetime.timestamp(now + timedelta(seconds=10))
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())
             data = response.get_json()
