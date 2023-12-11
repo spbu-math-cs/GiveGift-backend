@@ -93,7 +93,8 @@
         "email": "...",
         "about": "...",
         "birth_date": "...",
-        "interests": [...]
+        "interests": [...],
+        "friends": [...]
     }
     ```
 
@@ -126,7 +127,9 @@
       "email": "...",
       "about": "...",
       "birth_date": "...",
-      "interests": [...]
+      "interests": [...],
+      "friends": [...],
+      "is_me": True/False
   }
   ```
 
