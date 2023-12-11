@@ -2,11 +2,12 @@ import datetime
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Integer, String, DateTime, and_, Boolean
+from sqlalchemy import Integer, String, DateTime, and_, Boolean, Date
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import date
 
 
 # from flask_login import UserMixin
@@ -63,7 +64,7 @@ class User(Base):
 
     id = sa.Column(Integer, primary_key=True, autoincrement=True)
     nickname = sa.Column(String(64), index=True, unique=True, nullable=False)
-    birth_date = sa.Column(DateTime, index=True)
+    birth_date = sa.Column(Date, index=True)
     about = sa.Column(String(500))
     email = sa.Column(String(120), index=True, unique=True, nullable=False)
     password_hash = sa.Column(String(128))
@@ -132,7 +133,7 @@ class UserDatabase:
             self.db.drop_all()
 
     @_raises_database_exit_exception
-    def create_user(self, nickname: str, email: str, birth_date: datetime.datetime, about: str,
+    def create_user(self, nickname: str, email: str, birth_date: date, about: str,
                     password: str) -> None:
         with self.app.app_context():
             user = User()
@@ -460,9 +461,9 @@ class UserDatabase:
 
     # INTERFACE
     @_raises_database_exit_exception
-    def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: datetime.date,
+    def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date,
                     interests: list) -> None:
-        self.create_user(nickname, email, datetime.datetime.combine(birth_date, datetime.datetime.min.time()), about,
+        self.create_user(nickname, email, birth_date, about,
                          password)
         user = self.get_user_by_email_or_none(email)
         for i in interests:
@@ -472,10 +473,13 @@ class UserDatabase:
 
     @_raises_database_exit_exception
     def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str,
-                            birth_date: datetime.date) -> None:
-        self.set_to_user_with_id(user_id, nickname, email,
-                                 datetime.datetime.combine(birth_date, datetime.datetime.min.time()), about,
+                            birth_date: date) -> None:
+        self.set_to_user_with_id(user_id, nickname, email, birth_date, about,
                                  password)
+        for i in interests:
+            if not self.has_tag(i):
+                self.add_tag(i)
+            self.add_user_tag(nickname, i)
 
     @_raises_database_exit_exception
     def has_outgoing_request(self, user_id: int, friend_id: int) -> bool:
