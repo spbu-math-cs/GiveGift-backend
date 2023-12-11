@@ -13,12 +13,14 @@ def generate_ideas(tags: list, price_range: list):
         asyncio.run(generate_ideas_or_none(tags=tags, titles=titles, lock=lock))
     except IndexError:
         pass
-    return list(filter(lambda idea: idea["img_link"] is not None,
-                       [
-                           {"title": title,
-                            "img_link": get_image_link_or_none(product_name=title, min_budget=price_range[0],
-                                                               max_budget=price_range[1]),
-                            "market_link": generate_link(title=title, min_budget=price_range[0],
-                                                         max_budget=price_range[1]),
-                            } for title in titles
-                       ]))
+    try:
+        return list(filter(lambda idea: idea["img_link"] is not None,
+                           [
+                               {"title": title,
+                                "img_link": get_image_link_or_none(product_name=title, min_budget=price_range[0],
+                                                                   max_budget=price_range[1]),
+                                "market_link": generate_link(title=title, min_budget=price_range[0],
+                                                             max_budget=price_range[1]),
+                                } for title in titles
+                           ]))
+    except IndexError: pass
