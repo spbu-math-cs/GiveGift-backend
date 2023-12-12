@@ -50,8 +50,7 @@ def register():
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
     add_default_preferences(interests)
-    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
-                               interests=interests)
+    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
@@ -123,16 +122,25 @@ def set_info():
     return "OK", 200
 
 
-def get_safe_user_info(user) -> dict:
+def get_safe_user_info_simple(user) -> dict:
     return {
         "id": str(user.id),
         "nickname": str(user.nickname),
         "email": str(user.email),
         "about": str(user.about),
         "birth_date": str(user.birth_date),
-        "interests": user.interests,
-        "friends": data_base.get_friends(user.id)
+        "interests": user.interests
     }
+
+
+def get_safe_user_info(user) -> dict:
+    data: dict = get_safe_user_info_simple(user)
+    print(user.id)
+    data["friends"] = [
+        get_safe_user_info_simple(data_base.get_user_by_index_or_none(friend_id))
+        for friend_id in data_base.get_friends(user.id)
+    ]
+    return data
 
 
 def get_user_info_by_id(user_id: int):
@@ -176,7 +184,6 @@ def get_user_info(i):
             if not data_base.get_user_by_email_or_none(email).is_token_actual:
                 return "Token is not actual", 401
             user = data_base.get_user_by_email_or_none(email)
-            user_info = get_safe_user_info(user)
             user_info["is_me"] = (user.id == questioned_user.id)
         return user_info, 200
     if i == 0:
