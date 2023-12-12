@@ -19,7 +19,7 @@ jwt = JWTManager(app=app)
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
 def register():
-    nickname = request.json.get("nickname", "")  # TODO forbid add myself in friends
+    nickname = request.json.get("nickname", "")
     email = request.json.get("email", "")
     password = request.json.get("password", "")
     birth_date = request.json.get("birth_date", "")
@@ -45,7 +45,6 @@ def register():
     else:
         birth_date = None
     if type(interests) is not list:
-        print(type(interests))
         return "Логическая ошибка! Такого быть не должно! Список - не список!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
@@ -118,7 +117,11 @@ def set_info():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "К сожалению, выбранный тег не поддерживается!", 401
-    data_base.set_to_user_with_id(user_id=int(user_id), email=email, about=about, interests=interests,
+    try:
+        user_id = int(user_id)
+    except ValueError:
+        return "Вместо id подали не число!"
+    data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date, password=password)
     return "OK", 200
 
@@ -136,7 +139,6 @@ def get_safe_user_info_simple(user) -> dict:
 
 def get_safe_user_info(user) -> dict:
     data: dict = get_safe_user_info_simple(user)
-    print(user.id)
     data["friends"] = [
         get_safe_user_info_simple(data_base.get_user_by_index_or_none(friend_id))
         for friend_id in data_base.get_friends(user.id)
@@ -238,6 +240,8 @@ def outgoing_friend_request():
     if data_base.get_user_by_index_or_none(friend_id) is None:
         return "Упомянутый друг не найден в базе!", 401
     if request.method == "POST":
+        if user.id == friend_id:
+            return "Невозможно добавить в друзья самого себя!", 401
         if data_base.has_outgoing_request(user.id, friend_id):
             return "Уже есть исходящий запрос к этому другу!", 401
         if data_base.has_incoming_request(user.id, friend_id):
@@ -294,7 +298,7 @@ def refresh_expiring_jwts(response):
     try:
         exp_timestamp = get_jwt()["exp"]
         now = datetime.now(timezone.utc)
-        target_timestamp = datetime.timestamp(now + timedelta(minutes=30))
+        target_timestamp = datetime.timestamp(now + timedelta(minutes=30, seconds=30))
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())
             data = response.get_json()
@@ -303,5 +307,4 @@ def refresh_expiring_jwts(response):
                 response.data = json.dumps(data)
         return response
     except (RuntimeError, KeyError):
-        # TODO always except, add accept_token everywhere
         return response
