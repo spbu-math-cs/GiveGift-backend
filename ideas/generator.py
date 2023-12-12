@@ -16,11 +16,12 @@ def generate_ideas(tags: list, price_range: list):
     try:
         return list(filter(lambda idea: idea["img_link"] is not None,
                            [
-                               {"title": title,
+                               {"title": title.capitalize(),
                                 "img_link": get_image_link_or_none(product_name=title, min_budget=price_range[0],
                                                                    max_budget=price_range[1]),
                                 "market_link": generate_link(title=title, min_budget=price_range[0],
                                                              max_budget=price_range[1]),
                                 } for title in titles
                            ]))
-    except IndexError: pass
+    except IndexError:
+        pass
