@@ -1,9 +1,7 @@
 import asyncio
-import runpy
 from typing import List, Optional
 
 import g4f
-from googletrans import Translator
 
 
 def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]:
