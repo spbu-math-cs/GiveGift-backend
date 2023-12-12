@@ -1,7 +1,7 @@
 import json
 import random
 import re
-from datetime import timedelta, datetime, timezone
+from datetime import timedelta, datetime, timezone, date
 
 from flask import request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, \
@@ -39,7 +39,7 @@ def register():
         return "Пользователь с таким email уже существует!", 401
     if birth_date != "":
         try:
-            birth_date = datetime.strptime(birth_date, "%m-%d").date()
+            birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
         except ValueError:
             return "Логическая ошибка! Такого быть не должно! Дата - не дата!", 401
     else:
@@ -50,7 +50,8 @@ def register():
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
     add_default_preferences(interests)
-    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date, interests=interests)
+    data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
+                          interests=interests)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
@@ -58,6 +59,28 @@ def register():
     access_token = create_access_token(identity=email)
     data_base.get_user_by_email_or_none(email).is_token_actual = True
     return {"access_token": access_token}, 200
+
+
+def get_noun(number, one, two, five):
+    n = abs(number) % 100
+    if 5 <= n <= 20:
+        return five
+
+    n %= 10
+    if n == 1:
+        return one
+    if 2 <= n <= 4:
+        return two
+    return five
+
+
+def calculate_age(birthday: datetime.date) -> int:
+    today = date.today()
+    return today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
+
+
+def get_prettified_age(age) -> str:
+    return f'{age} {get_noun(age, "год", "года", "лет")}'
 
 
 def add_default_preferences(interests) -> None:
@@ -109,7 +132,7 @@ def set_info():
         return "Пользователь с данным email уже существует!", 401
     if birth_date != "":
         try:
-            birth_date = datetime.strptime(birth_date, "%m-%d").date()
+            birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
         except ValueError:
             return "Логическая ошибка! Дата не парсится!", 401
     if type(interests) is not list:
@@ -132,7 +155,7 @@ def get_safe_user_info_simple(user) -> dict:
         "nickname": str(user.nickname),
         "email": str(user.email),
         "about": str(user.about),
-        "birth_date": str(user.birth_date),
+        "birth_date": get_prettified_age(calculate_age(user.birth_date)) if user.birth_date is not None else "",
         "interests": data_base.get_user_tags(user.id)
     }
 

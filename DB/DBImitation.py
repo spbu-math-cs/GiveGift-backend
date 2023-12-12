@@ -110,6 +110,10 @@ class User:
     def _has_message_with_id(self, message_id: int):
         return message_id in self.__messages.keys()
 
+    @property
+    def get_interests(self):
+        return self._interests
+
 
 # some functions to work with DB
 class UsersProvider:

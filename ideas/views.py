@@ -12,7 +12,7 @@ from DB import data_base
 @app.route('/generate_ideas', methods=["POST"])
 @jwt_required(optional=True)
 def index():
-    interests = request.json.get("_interests", "")
+    interests = request.json.get("interests", "")
     price_range = request.json.get("price_range", "")
     if current_email := get_jwt_identity():
         friend_id = request.json.get("friend_id", "")
@@ -25,7 +25,7 @@ def index():
             if not data_base.is_friend(user.id, friend_id):
                 return "Указанный человек не является Вашим другом!", 400
             friend = data_base.get_user_by_index_or_none(friend_id)
-            interests = friend.__interests
+            interests = friend.get_interests
     if interests == "":
         return "Интересы друга не указаны!", 400
     if price_range == "":
@@ -53,6 +53,7 @@ def messages():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
+
     user = data_base.get_user_by_email_or_none(email)
     if datetime.datetime.now() - user.last_time_seen > datetime.timedelta(days=3):
         requested_users = data_base.get_friends(user.id)
@@ -62,7 +63,7 @@ def messages():
             requested_user = data_base.get_user_by_index_or_none(requested_user_id)
             ideas = []
             while len(ideas) == 0:
-                ideas = generate_ideas(requested_user.__interests, [0, 1000])
+                ideas = generate_ideas(requested_user.get_interests, [0, 1000])
             data_base.add_message(
                 user.id,
                 f"Подари {requested_user.nickname} {ideas[0]['title']}",
