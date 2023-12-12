@@ -239,6 +239,8 @@ def outgoing_friend_request():
     if request.method == "POST":
         if data_base.has_outgoing_request(user.id, friend_id):
             return "Уже есть исходящий запрос к этому другу!", 401
+        if data_base.has_incoming_request(user.id, friend_id):
+            data_base.accept_friend_request(friend_id, user.id)
         data_base.send_friend_request(user.id, friend_id)
         return "OK", 200
     if not data_base.has_outgoing_request(user.id, friend_id):

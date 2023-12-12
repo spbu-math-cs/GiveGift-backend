@@ -6,11 +6,8 @@ from ideas.parser import get_image_link_or_none
 
 def generate_ideas(tags: list, price_range: list):
     titles = []
-    ioloop = asyncio.new_event_loop()
-    asyncio.set_event_loop(ioloop)
-    lock = asyncio.Lock()
     try:
-        asyncio.run(generate_ideas_or_none(tags=tags, titles=titles, lock=lock))
+        generate_ideas_or_none(tags=tags, titles=titles)
     except IndexError:
         pass
     try:

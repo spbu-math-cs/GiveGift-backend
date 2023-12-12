@@ -16,7 +16,8 @@ def get_query_link(name_of_product, min_budget, max_budget):
 def get_id(response):
     try:
         return response['data']['products'][0]['id']
-    except IndexError: pass
+    except:
+        pass
 
 
 def get_image_link(product_id):
@@ -52,10 +53,12 @@ def get_image_link(product_id):
             basket = '13'
         url = f"https://basket-{basket}.wb.ru/vol{_shot_id}/part{product_id // 1000}/{product_id}/images/big/1.jpg"
         return url
-    except: pass
+    except:
+        pass
 
 
 def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int) -> Optional[str]:
     try:
         return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget)))
-    except KeyError: pass
+    except:
+        pass
