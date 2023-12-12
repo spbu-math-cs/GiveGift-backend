@@ -10,38 +10,7 @@ def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]
     return f"https://www.wildberries.ru/catalog/0/search.aspx?page=1&sort=popular&search={title}&priceU={min_budget}00%3B{max_budget}00"
 
 
-'''
 async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
-    """if num_of_ideas <= 0 or num_of_ideas > 10:
-        raise RuntimeError("num_of_ideas not in 1..10 is not supported")"""
-    try:
-        result: str = ""
-        response: str = (await asyncio.gather(
-            g4f.ChatCompletion.create_async(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system",
-                     "content": "Ты ассистент, который подбирает подарки по предпочтениям, без лишних разговоров и описаний."},
-                    {"role": "assistant", "content": f"Друг любит {', '.join(preferences)}."},
-                    {"role": "assistant", "content": f"Формат вывода: одним словом, через запятую'."},
-                    {"role": "user",
-                     "content": f"Выдай {num_of_ideas} уникальных идей подарка для друга без описания."},
-                ]
-            )
-        ))[0]
-        for message in response:
-            result += str(message)
-        return result.replace('.', '').split(', ')
-    except Exception as e:
-        print(e)
-        runpy.run_module("g4f")
-        return None
-'''
-
-
-async def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
-    """if num_of_ideas <= 0 or num_of_ideas > 10:
-        raise RuntimeError("num_of_ideas not in 1..10 is not supported")"""
     try:
         response: str = (await asyncio.gather(
             g4f.ChatCompletion.create_async(
