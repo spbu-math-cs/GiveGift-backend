@@ -30,7 +30,7 @@ def add_users_to_db(client):
         "nickname": "Flask",
         "email": "flask@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     if response.status_code == 200:
         token1 = response.json['access_token']
@@ -47,7 +47,7 @@ def add_users_to_db(client):
         "nickname": "Flask",
         "email": "flask2@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     if response.status_code == 200:
         token2 = response.json['access_token']

@@ -72,7 +72,7 @@ class User(Base):
     last_time_seen = sa.Column(DateTime, index=True)
 
     # TODO: Check, why it doesn't work (+ fix m2m)
-    # __interests = relationship('Interest', secondary='user_interest', backref='User')
+    # _interests = relationship('Interest', secondary='user_interest', backref='User')
     # __friends = relationship('User', secondary='user_friend', backref='User')
     # __incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
     # __outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')

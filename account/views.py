@@ -45,6 +45,7 @@ def register():
     else:
         birth_date = None
     if type(interests) is not list:
+        print(type(interests))
         return "Логическая ошибка! Такого быть не должно! Список - не список!", 401
     for interest in interests:
         if not data_base.has_tag(interest):
@@ -85,7 +86,7 @@ def create_token():
     if not data_base.has_user(email, password):
         return "Неверные имя пользователя или пароль!", 401
     access_token = create_access_token(identity=email)
-    data_base.get_user_by_email_or_none(email).is_token_actual = True
+    data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, True)
     return {"access_token": access_token}, 200
 
 
@@ -96,7 +97,7 @@ def set_info():
     password = request.json.get("password", "")
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
-    interests = request.json.get("interests", "")
+    interests = request.json.get("_interests", "")
     if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Заполните поле email!", 401
     if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
@@ -129,7 +130,7 @@ def get_safe_user_info_simple(user) -> dict:
         "email": str(user.email),
         "about": str(user.about),
         "birth_date": str(user.birth_date),
-        "interests": user.interests
+        "interests": data_base.get_user_tags(user.id)
     }
 
 
@@ -284,7 +285,7 @@ def logout():
             return "Token is not actual", 401
     response = jsonify({"message": "logout successful", "code": 200})
     unset_jwt_cookies(response)
-    data_base.get_user_by_email_or_none(email).is_token_actual = False
+    data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, False)
     return response
 
 

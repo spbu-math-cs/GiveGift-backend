@@ -12,7 +12,7 @@ from DB import data_base
 @app.route('/generate_ideas', methods=["POST"])
 @jwt_required(optional=True)
 def index():
-    interests = request.json.get("interests", "")
+    interests = request.json.get("_interests", "")
     price_range = request.json.get("price_range", "")
     if current_email := get_jwt_identity():
         friend_id = request.json.get("friend_id", "")
@@ -25,7 +25,7 @@ def index():
             if not data_base.is_friend(user.id, friend_id):
                 return "Указанный человек не является Вашим другом!", 500
             friend = data_base.get_user_by_index_or_none(friend_id)
-            interests = friend.interests
+            interests = friend.__interests
     if interests == "":
         return "Интересы друга не указаны!", 500
     if price_range == "":
@@ -62,7 +62,7 @@ def messages():
             requested_user = data_base.get_user_by_index_or_none(requested_user_id)
             ideas = []
             while len(ideas) == 0:
-                ideas = generate_ideas(requested_user.interests, [0, 1000])
+                ideas = generate_ideas(requested_user.__interests, [0, 1000])
             data_base.add_message(
                 user.id,
                 f"Подари {requested_user.nickname} {ideas[0]['title']}",

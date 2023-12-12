@@ -15,7 +15,7 @@ class User:
         self.__password_hash = generate_password_hash(password=password)
         self.birth_date = birth_date
         self.about = about
-        self.interests = interests
+        self._interests = interests
         self.is_token_actual = False
         self.__friends = []
         self.__incoming_requests = []
@@ -28,7 +28,7 @@ class User:
         return check_password_hash(pwhash=self.__password_hash, password=password)
 
     # def add_user_tag(self, interest: str) -> None:
-    #     self.interests.append(interest)
+    #     self._interests.append(interest)
 
     def _add_friend(self, friend_id: int) -> None:
         if friend_id not in self.__friends:
@@ -181,7 +181,7 @@ class UsersProvider:
     #     user = self.get_user_by_email_or_none(email=email)
     #     if user is None:
     #         raise AssertionError("Can't get user tags, if user is not exists!")
-    #     return user.interests
+    #     return user._interests
 
 
 class TagProvider:
@@ -247,7 +247,7 @@ class DataDecorator:
         user = self.get_user_by_index_or_none(user_id)
         user.about = about
         user.email = email
-        user.interests = interests
+        user.__interests = interests
         user.nickname = nickname
         user.birth_date = birth_date
         user.password = password
@@ -323,5 +323,12 @@ class DataDecorator:
 
     def has_message_with_id(self, user_id: int, message_id: int):
         return self.get_user_by_index_or_none(user_id)._has_message_with_id(message_id)
+
+    def get_user_tags(self, user_id: int) -> list:
+        return self.get_user_by_index_or_none(user_id)._interests[:]
+
+    def set_user_token_as(self, user_id: int, value: bool):
+        self.get_user_by_index_or_none(user_id).is_token_actual = value
+
 
 # replace all to get a correct behavior (when DB will be ready)

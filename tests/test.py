@@ -38,7 +38,7 @@ def test_register_user(client):
         "nickname": "Flask",
         "email": "a@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     token = response.json['access_token']
     assert response.status_code == 200
@@ -48,7 +48,7 @@ def test_register_user_short_nick(client):
         "nickname": "g",
         "email": "flask@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     assert response.status_code == 401
     assert "Слишком короткий Ник!" in response.data.decode('utf-8')
@@ -57,7 +57,7 @@ def test_register_missing_fields(client):
     response = client.post("/register", json={
         "nickname": "Flask",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     assert response.status_code == 401
     assert "Заполните все поля!" in response.data.decode('utf-8')
@@ -67,7 +67,7 @@ def test_register_invalid_email(client):
         "nickname": "Flask",
         "email": "flask.com",
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     assert response.status_code == 401
     assert "Введите корректный адрес электронной почты!" in response.data.decode('utf-8')
@@ -79,7 +79,7 @@ def test_register_existing_user(client):
         "nickname": "NewUser",
         "email": existing_email,
         "password": "T7Rts2l3O99P#",
-        "interests": []
+        "_interests": []
     })
     assert response.status_code == 401
     assert "Пользователь с таким email уже существует!" in response.data.decode('utf-8')
@@ -90,7 +90,7 @@ def test_register_invalid_birth_date(client):
         "email": "gaf@flask.flask",
         "password": "T7Rts2l3O99P#",
         "birth_date": "13-40",
-        "interests": []
+        "_interests": []
     })
     assert response.status_code == 401
     assert "Логическая ошибка! Такого быть не должно! Дата - не дата!" in response.data.decode('utf-8')
@@ -100,7 +100,7 @@ def test_register_interests_not_a_list(client):
         "nickname": "Flask",
         "email": "kjihjhi@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": "not a list"
+        "_interests": "not a list"
     })
     assert response.status_code == 401
     assert "Логическая ошибка! Такого быть не должно! Список - не список!" in response.data.decode('utf-8')
@@ -110,7 +110,7 @@ def test_register_unavailable_interest(client):
         "nickname": "Flask",
         "email": "j8j@flask.flask",
         "password": "T7Rts2l3O99P#",
-        "interests": ["unknown_interest"]
+        "_interests": ["unknown_interest"]
     })
     assert response.status_code == 401
     assert "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!" in response.data.decode('utf-8')
