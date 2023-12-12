@@ -101,7 +101,7 @@ def set_info():
         return "Заполните поле email!", 401
     if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль!", 401
-    if user_id == "":  # TODO check if not a number
+    if user_id == "":
         return "Введённый id пуст!", 401
     if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 401
