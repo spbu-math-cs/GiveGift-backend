@@ -190,8 +190,8 @@ def get_user_info(i):
             user_info["is_me"] = (user.id == questioned_user.id)
         return user_info, 200
     if i == 0:
-        return "Зарегистрируйтесь или войдите!", 500
-    return "Не существует человека с таким id!", 500
+        return "Зарегистрируйтесь или войдите!", 400
+    return "Не существует человека с таким id!", 400
 
 
 @app.route('/friends', methods=["GET", "DELETE"])

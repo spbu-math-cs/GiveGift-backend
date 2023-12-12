@@ -17,7 +17,7 @@ def edit_interest():
     if email != 'ADMIN@ADMIN.su':
         return "Только Админ может редактировать тэги!", 401
     if not data_base.get_user_by_email_or_none(email).is_token_actual:
-        return "Token is not actual!", 500
+        return "Token is not actual!", 400
 
     new_interests = request.json.get("new_interests", "")
     edit_interests = request.json.get("edit_interests", "")

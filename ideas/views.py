@@ -20,30 +20,30 @@ def index():
             try:
                 friend_id = int(friend_id)
             except TypeError:
-                return "Передаваемый id друга должен быть числом!", 500
+                return "Передаваемый id друга должен быть числом!", 400
             user = data_base.get_user_by_email_or_none(current_email)
             if not data_base.is_friend(user.id, friend_id):
-                return "Указанный человек не является Вашим другом!", 500
+                return "Указанный человек не является Вашим другом!", 400
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = friend.__interests
     if interests == "":
-        return "Интересы друга не указаны!", 500
+        return "Интересы друга не указаны!", 400
     if price_range == "":
-        return "Ценовой диапазон не указан!", 500
+        return "Ценовой диапазон не указан!", 400
     if type(interests) is not list:
-        return "Интересы должны быть представлены в виде списка!", 500
+        return "Интересы должны быть представлены в виде списка!", 400
     if len(interests) == 0:
         return []
     if type(price_range) is not list:
-        return "Ценовой диапазон должен быть списком!", 500
+        return "Ценовой диапазон должен быть списком!", 400
     if len(price_range) != 2:
-        return "Ценовой диапазон может содержать лишь 2 значения!", 500
+        return "Ценовой диапазон может содержать лишь 2 значения!", 400
     try:
         price_range = [int(price_range[0]), int(price_range[1])]
     except ValueError:
-        return "Ценовой диапазон должен быть задан числами!", 500
+        return "Ценовой диапазон должен быть задан числами!", 400
     if price_range[0] < 0 or price_range[1] < price_range[0]:
-        return "Ценовой диапазон должен быть задан неотрицательными числами, первое не превышает второго!", 500
+        return "Ценовой диапазон должен быть задан неотрицательными числами, первое не превышает второго!", 400
     return generate_ideas(interests, price_range)
 
 
