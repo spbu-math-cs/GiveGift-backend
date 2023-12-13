@@ -3,14 +3,12 @@ import datetime
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Integer, String, DateTime, and_, Boolean, Date
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.exc import DatabaseError
 import sqlalchemy as sa
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 
-
-# from flask_login import UserMixin
 
 
 class DatabaseExitException(Exception):
@@ -184,7 +182,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def delete_tag(self, interest_name: str) -> None:
         with self.app.app_context():
-            interest = self.get_tag_by_name_or_none(interest_name)
+            interest: Interest = self.get_tag_by_name_or_none(interest_name)
             self.db.session.execute(
                 sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.interest_id == interest.id))
             self.db.session.query(Interest).filter_by(id=interest.id).delete()
@@ -244,6 +242,8 @@ class UserDatabase:
     def get_user_tags(self, user_name: str) -> [Interest]:
         with self.app.app_context():
             user: User = self.get_user_by_name_or_none(user_name)
+            if User is None:
+                raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
                     self.user_interest_m2m.c.user_id == user.id)).fetchall()
@@ -263,7 +263,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def get_users_with_tag(self, interest_name: str) -> [User]:
         with self.app.app_context():
-            interest = self.get_tag_by_name_or_none(interest_name)
+            interest: Interest = self.get_tag_by_name_or_none(interest_name)
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.user_id).where(
                     self.user_interest_m2m.c.interest_id == interest.id)).fetchall()
@@ -275,7 +275,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def clear_user_tags(self, user_name: str) -> None:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(user_name)
+            user: User = self.get_user_by_name_or_none(user_name)
             self.db.session.execute(
                 sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user.id))
             self.db.session.commit()
