@@ -302,8 +302,14 @@ class UserDatabase:
                 'email': email,
                 'birth_date': birth_date,
                 'about': about,
-                '__password_hash': generate_password_hash(password)
+                'password_hash': generate_password_hash(password)
             }, synchronize_session=False)
+            self.db.session.commit()
+
+    @_raises_database_exit_exception
+    def set_user_token_as(self, user_id: int, status: bool):
+        with self.app.app_context():
+            self.db.session.query(User).filter_by(id=user_id).update({'is_token_actual': status})
             self.db.session.commit()
 
     # __friends part
