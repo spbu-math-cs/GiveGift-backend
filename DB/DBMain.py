@@ -243,7 +243,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def get_user_tags(self, user_name: str) -> [Interest]:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(user_name)
+            user: User = self.get_user_by_name_or_none(user_name)
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
                     self.user_interest_m2m.c.user_id == user.id)).fetchall()

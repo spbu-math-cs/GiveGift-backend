@@ -57,7 +57,7 @@ def register():
         if user_or_none.is_token_actual:
             return "OK", 200
     access_token = create_access_token(identity=email)
-    data_base.get_user_by_email_or_none(email).is_token_actual = True
+    data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, True)
     return {"access_token": access_token}, 200
 
 
@@ -99,7 +99,7 @@ def create_token():
             return "Token is actual", 401
     email = request.json.get("email", "")
     password = request.json.get("password", "")
-    if data_base.get_user_by_email_or_none(email) == "":
+    if data_base.get_user_by_email_or_none(email) is None:
         return "Пользователя с данным email не существует!", 401
     if email == "":
         return "Почта не была указана!", 401
@@ -197,9 +197,9 @@ def get_user_info(i):
     except ValueError:
         return 404
     if email is not None and i == 0:
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
         user = data_base.get_user_by_email_or_none(email)
+        if not user.is_token_actual:
+            return "Token is not actual", 401
         user_info = get_safe_user_info(user)
         user_info["is_me"] = True
         return user_info, 200
