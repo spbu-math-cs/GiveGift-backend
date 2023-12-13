@@ -10,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 
 
-
 class DatabaseExitException(Exception):
     """
     Базовая ошибка, выбрасываемая функциями файла.
@@ -239,10 +238,10 @@ class UserDatabase:
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_tags(self, user_name: str) -> [Interest]:
+    def get_user_tags(self, user_id: int) -> [Interest]:
         with self.app.app_context():
-            user: User = self.get_user_by_name_or_none(user_name)
-            if User is None:
+            user: User = self.get_user_by_index_or_none(user_id)
+            if user is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(

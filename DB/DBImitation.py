@@ -162,10 +162,10 @@ class UsersProvider:
     # def get_count_of_users(self) -> int:
     #     return len(self.__users)
 
-#     def delete_user(self, user_name: str) -> None:
-#         if self.get_user_by_email_or_none(user_name) is None:
+#     def delete_user(self, user_email: str) -> None:
+#         if self.get_user_by_email_or_none(user_email) is None:
 #             raise AssertionError("Can't delete user, that is not exists!")
-#         del [user for user in self.__users if user.nickname == user_name][0]
+#         del [user for user in self.__users if user.nickname == user_email][0]
 # #
     def _get_user_by_email_or_none(self, email: str) -> User:
         try:
