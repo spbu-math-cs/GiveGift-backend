@@ -181,7 +181,7 @@ def get_user_info_by_id(user_id: int):
 def get_account_info():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
     if request.method == 'POST':
         return set_info()
     user = data_base.get_user_by_email_or_none(email)
@@ -199,7 +199,7 @@ def get_user_info(i):
     if email is not None and i == 0:
         user = data_base.get_user_by_email_or_none(email)
         if not user.is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
         user_info = get_safe_user_info(user)
         user_info["is_me"] = True
         return user_info, 200
@@ -208,7 +208,7 @@ def get_user_info(i):
         user_info["is_me"] = False
         if email is not None:
             if not data_base.get_user_by_email_or_none(email).is_token_actual:
-                return "Token is not actual", 401
+                return "Token is not actual", 422
             user = data_base.get_user_by_email_or_none(email)
             user_info["is_me"] = (user.id == questioned_user.id)
         return user_info, 200
@@ -222,7 +222,7 @@ def get_user_info(i):
 def friends():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
@@ -253,7 +253,7 @@ def friends():
 def outgoing_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
     user = data_base.get_user_by_email_or_none(email)
     friend_id = request.json.get("friend_id", "")
     try:
@@ -284,7 +284,7 @@ def outgoing_friend_request():
 def incoming_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
     user = data_base.get_user_by_email_or_none(email)
     friend_id = request.json.get("friend_id", "")
     try:
@@ -309,7 +309,7 @@ def incoming_friend_request():
 def logout():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
     response = jsonify({"message": "logout successful", "code": 200})
     unset_jwt_cookies(response)
     data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, False)

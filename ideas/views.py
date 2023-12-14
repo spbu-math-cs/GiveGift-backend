@@ -52,7 +52,7 @@ def index():
 def messages():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
+            return "Token is not actual", 422
 
     user = data_base.get_user_by_email_or_none(email)
     if datetime.datetime.now() - user.last_time_seen > datetime.timedelta(days=3):
