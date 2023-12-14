@@ -52,7 +52,7 @@ def index():
 def messages():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
 
     user = data_base.get_user_by_email_or_none(email)
     if datetime.datetime.now() - user.last_time_seen > datetime.timedelta(days=3):
@@ -75,8 +75,8 @@ def messages():
     try:
         message_id = int(message_id)
     except ValueError:
-        return "Вместо message_id подали не число!", 401
+        return "Вместо message_id подали не число!", 400
     if data_base.has_message_with_id(user.id, message_id):
-        return "Нет такого сообщения!", 401
+        return "Нет такого сообщения!", 400
     data_base.delete_message_with_id(user.id, message_id)
     return "OK", 200

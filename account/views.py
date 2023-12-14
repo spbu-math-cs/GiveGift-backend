@@ -13,6 +13,7 @@ from core import app
 
 app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[random.randint(0, 9)] for _ in range(random.randint(8, 80))])
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+# app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 jwt = JWTManager(app=app)
 
 
@@ -26,29 +27,29 @@ def register():
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
     if nickname == "" or email == "" or password == "":
-        return "Заполните все поля!", 401
+        return "Заполните все поля!", 400
     if len(nickname) < 2:
-        return "Слишком короткий Ник!", 401
+        return "Слишком короткий Ник!", 400
     if not re.fullmatch("\\S+@\\S+\\.\\S+", email):
-        return "Введите корректный адрес электронной почты!", 401
+        return "Введите корректный адрес электронной почты!", 400
     if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
                "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
-               "восьми символов!", 401
+               "восьми символов!", 400
     if data_base.get_user_by_email_or_none(email=email):
-        return "Пользователь с таким email уже существует!", 401
+        return "Пользователь с таким email уже существует!", 400
     if birth_date != "":
         try:
             birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
         except ValueError:
-            return "Логическая ошибка! Такого быть не должно! Дата - не дата!", 401
+            return "Логическая ошибка! Такого быть не должно! Дата - не дата!", 400
     else:
         birth_date = None
     if type(interests) is not list:
-        return "Логическая ошибка! Такого быть не должно! Список - не список!", 401
+        return "Логическая ошибка! Такого быть не должно! Список - не список!", 400
     for interest in interests:
         if not data_base.has_tag(interest):
-            return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 401
+            return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 400
     add_default_preferences(interests)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
@@ -100,13 +101,13 @@ def create_token():
     email = request.json.get("email", "")
     password = request.json.get("password", "")
     if data_base.get_user_by_email_or_none(email) is None:
-        return "Пользователя с данным email не существует!", 401
+        return "Пользователя с данным email не существует!", 400
     if email == "":
-        return "Почта не была указана!", 401
+        return "Почта не была указана!", 400
     if password == "":
-        return "Введите пароль!", 401
+        return "Введите пароль!", 400
     if not data_base.has_user(email, password):
-        return "Неверные имя пользователя или пароль!", 401
+        return "Неверные имя пользователя или пароль!", 400
     access_token = create_access_token(identity=email)
     data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, True)
     return {"access_token": access_token}, 200
@@ -121,25 +122,25 @@ def set_info():
     about = request.json.get("about", "")
     interests = request.json.get("_interests", "")
     if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
-        return "Заполните поле email!", 401
+        return "Заполните поле email!", 400
     if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль!", 401
+        return "Введите корректный пароль!", 400
     if user_id == "":
-        return "Введённый id пуст!", 401
+        return "Введённый id пуст!", 400
     if data_base.get_user_by_index_or_none(user_id) is None:
-        return "Нет пользователя с данным id!", 401
+        return "Нет пользователя с данным id!", 400
     if data_base.get_user_by_email_or_none(email) is not None:
-        return "Пользователь с данным email уже существует!", 401
+        return "Пользователь с данным email уже существует!", 400
     if birth_date != "":
         try:
             birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
         except ValueError:
-            return "Логическая ошибка! Дата не парсится!", 401
+            return "Логическая ошибка! Дата не парсится!", 400
     if type(interests) is not list:
-        return "Логическая ошибка! Список не парсится!", 401
+        return "Логическая ошибка! Список не парсится!", 400
     for interest in interests:
         if not data_base.has_tag(interest):
-            return "К сожалению, выбранный тег не поддерживается!", 401
+            return "К сожалению, выбранный тег не поддерживается!", 400
     try:
         user_id = int(user_id)
     except ValueError:
@@ -181,7 +182,7 @@ def get_user_info_by_id(user_id: int):
 def get_account_info():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
     if request.method == 'POST':
         return set_info()
     user = data_base.get_user_by_email_or_none(email)
@@ -199,7 +200,7 @@ def get_user_info(i):
     if email is not None and i == 0:
         user = data_base.get_user_by_email_or_none(email)
         if not user.is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
         user_info = get_safe_user_info(user)
         user_info["is_me"] = True
         return user_info, 200
@@ -208,7 +209,7 @@ def get_user_info(i):
         user_info["is_me"] = False
         if email is not None:
             if not data_base.get_user_by_email_or_none(email).is_token_actual:
-                return "Token is not actual", 422
+                return "Token is not actual", 401
             user = data_base.get_user_by_email_or_none(email)
             user_info["is_me"] = (user.id == questioned_user.id)
         return user_info, 200
@@ -222,7 +223,7 @@ def get_user_info(i):
 def friends():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
@@ -236,11 +237,11 @@ def friends():
     try:
         friend_id = int(friend_id)
     except ValueError:
-        return "Вместо friend_id подали не число!", 401
+        return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
+        return "Упомянутый друг не найден в базе!", 400
     if not data_base.is_friend(user.id, friend_id):
-        return "Эти люди - не друзья!", 401
+        return "Эти люди - не друзья!", 400
 
     if request.method == "DELETE":
         data_base.remove_friend(user.id, friend_id)
@@ -253,26 +254,26 @@ def friends():
 def outgoing_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
     user = data_base.get_user_by_email_or_none(email)
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)
     except ValueError:
-        return "Вместо friend_id подали не число!", 401
+        return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
+        return "Упомянутый друг не найден в базе!", 400
     if request.method == "POST":
         if user.id == friend_id:
-            return "Невозможно добавить в друзья самого себя!", 401
+            return "Невозможно добавить в друзья самого себя!", 400
         if data_base.has_outgoing_request(user.id, friend_id):
-            return "Уже есть исходящий запрос к этому другу!", 401
+            return "Уже есть исходящий запрос к этому другу!", 400
         if data_base.has_incoming_request(user.id, friend_id):
             data_base.accept_friend_request(friend_id, user.id)
         data_base.send_friend_request(user.id, friend_id)
         return "OK", 200
     if not data_base.has_outgoing_request(user.id, friend_id):
-        return "Не было исходящего запроса к этому другу!", 401
+        return "Не было исходящего запроса к этому другу!", 400
     if request.method == "DELETE":
         data_base.remove_friend_request(user.id, friend_id)
         return "OK", 200
@@ -284,17 +285,17 @@ def outgoing_friend_request():
 def incoming_friend_request():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
+            return "Token is not actual", 401
     user = data_base.get_user_by_email_or_none(email)
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)
     except ValueError:
-        return "Вместо friend_id подали не число!", 401
+        return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 401
+        return "Упомянутый друг не найден в базе!", 400
     if not data_base.has_incoming_request(user.id, friend_id):
-        return "Нет входящего запроса от упомянутого друга", 401
+        return "Нет входящего запроса от упомянутого друга", 400
     if request.method == "DELETE":
         data_base.remove_friend_request(friend_id, user.id)
         return "OK", 200
@@ -309,8 +310,8 @@ def incoming_friend_request():
 def logout():
     if email := get_jwt_identity():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 422
-    response = jsonify({"message": "logout successful", "code": 200})
+            return "Token is not actual", 401
+    response = jsonify({"msg": "logout successful", "code": 200})
     unset_jwt_cookies(response)
     data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, False)
     return response
@@ -322,6 +323,7 @@ def refresh_expiring_jwts(response):
         exp_timestamp = get_jwt()["exp"]
         now = datetime.now(timezone.utc)
         target_timestamp = datetime.timestamp(now + timedelta(minutes=30, seconds=30))
+        # target_timestamp = datetime.timestamp(now + timedelta(seconds=30)) для теста обновления токена
         if target_timestamp > exp_timestamp:
             access_token = create_access_token(identity=get_jwt_identity())
             data = response.get_json()

@@ -15,38 +15,38 @@ def get_all_interests():
 def edit_interest():
     email: str = get_jwt_identity()
     if email != 'ADMIN@ADMIN.su':
-        return "Только Админ может редактировать тэги!", 401
+        return "Только Админ может редактировать тэги!", 400
     if not data_base.get_user_by_email_or_none(email).is_token_actual:
-        return "Token is not actual!", 400
+        return "Token is not actual!", 401
 
     new_interests = request.json.get("new_interests", "")
     edit_interests = request.json.get("edit_interests", "")
     if new_interests == "" or edit_interests == "":
-        return "Логическая ошибка! Такого быть не должно! Плохо парсим тэги!", 401
+        return "Логическая ошибка! Такого быть не должно! Плохо парсим тэги!", 400
     if type(new_interests) is not list or type(edit_interests) is not list:
-        return "Логическая ошибка! Такого быть не должно! Плохо парсим тэги!", 401
+        return "Логическая ошибка! Такого быть не должно! Плохо парсим тэги!", 400
     for interest in new_interests:
         if type(interest) is not str:
-            return "Неверный тип тэга!", 401
+            return "Неверный тип тэга!", 400
         if data_base.has_tag(interest):
-            return "Новый тэг не так уж и нов!", 401
+            return "Новый тэг не так уж и нов!", 400
         if interest == "":
-            return "Недопустимое имя тэга!", 401
+            return "Недопустимое имя тэга!", 400
         data_base.add_tag(interest)
     for interest in edit_interests:
         try:
             old_interest = interest["interest_name"]
             new_interest = interest["new_name"]
             if type(old_interest) is not str or type(new_interest) is not str:
-                return "Неверный тип тэга!", 401
+                return "Неверный тип тэга!", 400
             if not data_base.has_tag(old_interest):
-                return "Старый тэг отсутствует в базе!", 401
+                return "Старый тэг отсутствует в базе!", 400
             if data_base.has_tag(new_interest):
-                return "Новый тэг есть в базе!", 401
+                return "Новый тэг есть в базе!", 400
             data_base.delete_tag(old_interest)
             if new_interest != "":
                 data_base.add_tag(new_interest)
             return "OK", 200
         except TypeError:
-            return "Неверный тип тэга!", 401
+            return "Неверный тип тэга!", 400
     return "OK", 200
