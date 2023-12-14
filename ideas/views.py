@@ -25,7 +25,7 @@ def index():
             if not data_base.is_friend(user.id, friend_id):
                 return "Указанный человек не является Вашим другом!", 400
             friend = data_base.get_user_by_index_or_none(friend_id)
-            interests = friend.get_interests
+            interests = data_base.get_user_tags(friend.id)
     if interests == "":
         return "Интересы друга не указаны!", 400
     if price_range == "":
