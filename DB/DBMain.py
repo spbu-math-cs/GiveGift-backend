@@ -176,7 +176,7 @@ class UserDatabase:
     def delete_user(self, email: str) -> None:
         with self.app.app_context():
             self.clear_user_tags(email)
-            self.db.session.query(User).filter_by(nickname=user_name).delete()
+            self.db.session.query(User).filter_by(nickname=email).delete()
             self.db.session.commit()
 
     @_raises_database_exit_exception
