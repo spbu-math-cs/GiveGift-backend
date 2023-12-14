@@ -242,7 +242,7 @@ class UserDatabase:
     def get_user_tags(self, user_name: str) -> [Interest]:
         with self.app.app_context():
             user: User = self.get_user_by_name_or_none(user_name)
-            if User is None:
+            if user is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
