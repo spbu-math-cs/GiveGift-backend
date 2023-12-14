@@ -417,7 +417,7 @@ class UserDatabase:
     def has_application(self, user_id: int, potential_friend_id: int) -> bool:
         with self.app.app_context():
             friends = self.get_applications(user_id)
-            return potential_friend_id in list(map(lambda x: x.id, friends))
+            return potential_friend_id in list(map(lambda x: x, friends))
 
     # send/accept/decline friend request
     @_raises_database_exit_exception
