@@ -10,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 
 
+
 class DatabaseExitException(Exception):
     """
     Базовая ошибка, выбрасываемая функциями файла.
@@ -238,10 +239,10 @@ class UserDatabase:
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_tags(self, user_id: int) -> [Interest]:
+    def get_user_tags(self, user_name: str) -> [Interest]:
         with self.app.app_context():
-            user: User = self.get_user_by_index_or_none(user_id)
-            if user is None:
+            user: User = self.get_user_by_name_or_none(user_name)
+            if User is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.interest_id).where(
@@ -336,7 +337,8 @@ class UserDatabase:
                     self.user_user_m2m_friend.c.user_id == user_id)).fetchall()
             friends = []
             for friend_id in select:
-                friends.append(self.db.session.query(User).filter_by(id=friend_id[0]).first())
+                user: User = self.db.session.query(User).filter_by(id=friend_id[0]).first()
+                friends.append(user.id)
             return friends
 
     @_raises_database_exit_exception
@@ -364,14 +366,15 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def get_potential_friends(self, user_id: int) -> [User]:
+    def get_potential_friends(self, user_id: int) -> [int]:
         with self.app.app_context():
             select = self.db.session.execute(
                 sa.select(self.user_user_m2m_potential_friend.c.potential_friend_id).where(
                     self.user_user_m2m_potential_friend.c.user_id == user_id)).fetchall()
             friends = []
             for friend_id in select:
-                friends.append(self.db.session.query(User).filter_by(id=friend_id[0]).first())
+                user: User = self.db.session.query(User).filter_by(id=friend_id[0]).first()
+                friends.append(user.id)
             return friends
 
     @_raises_database_exit_exception
@@ -399,14 +402,15 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def get_applications(self, user_id: int) -> [User]:
+    def get_applications(self, user_id: int) -> [int]:
         with self.app.app_context():
             select = self.db.session.execute(
                 sa.select(self.user_user_m2m_friendship_application.c.potential_friend_id).where(
                     self.user_user_m2m_friendship_application.c.user_id == user_id)).fetchall()
             friends = []
             for friend_id in select:
-                friends.append(self.db.session.query(User).filter_by(id=friend_id[0]).first())
+                user: User = self.db.session.query(User).filter_by(id=friend_id[0]).first()
+                friends.append(user.id)
             return friends
 
     @_raises_database_exit_exception
@@ -445,12 +449,12 @@ class UserDatabase:
 
     # duplicate existed methods in here (not my fault)
     @_raises_database_exit_exception
-    def get_incoming_requests(self, user_id: int) -> [User]:
+    def get_incoming_requests(self, user_id: int) -> [int]:
         with self.app.app_context():
             return self.get_potential_friends(user_id)
 
     @_raises_database_exit_exception
-    def get_outgoing_requests(self, user_id: int) -> [User]:
+    def get_outgoing_requests(self, user_id: int) -> [int]:
         with self.app.app_context():
             return self.get_applications(user_id)
 
