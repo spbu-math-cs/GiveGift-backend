@@ -154,7 +154,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def add_user_tag(self, email: str, interest_name: str) -> None:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(email)
+            user = self.get_user_by_email_or_none(email)
             interest = self.get_tag_by_name_or_none(interest_name)
             if user and interest:
                 self.db.session.execute(
@@ -166,7 +166,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def delete_user_tag(self, email: str, interest_name: str) -> None:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(email)
+            user = self.get_user_by_email_or_none(email)
             interest = self.get_tag_by_name_or_none(interest_name)
             self.db.session.execute(sa.delete(self.user_interest_m2m).where(and_(
                 self.user_interest_m2m.c.user_id == user.id, self.user_interest_m2m.c.interest_id == interest.id)))
@@ -241,7 +241,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def get_user_tags(self, email: str) -> [Interest]:
         with self.app.app_context():
-            user: User = self.get_user_by_name_or_none(email)
+            user: User = self.get_user_by_email_or_none(email)
             if user is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
@@ -275,7 +275,7 @@ class UserDatabase:
     @_raises_database_exit_exception
     def clear_user_tags(self, email: str) -> None:
         with self.app.app_context():
-            user: User = self.get_user_by_name_or_none(email)
+            user: User = self.get_user_by_email_or_none(email)
             self.db.session.execute(
                 sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user.id))
             self.db.session.commit()
