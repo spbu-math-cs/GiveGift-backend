@@ -63,7 +63,7 @@ def messages():
             requested_user = data_base.get_user_by_index_or_none(requested_user_id)
             ideas = []
             while len(ideas) == 0:
-                ideas = generate_ideas(requested_user.get_interests, [0, 1000])
+                ideas = generate_ideas(data_base.get_user_tags(requested_user.id), [0, 1000])
             data_base.add_message(
                 user.id,
                 f"Подари {requested_user.nickname} {ideas[0]['title']}",
