@@ -239,9 +239,9 @@ class UserDatabase:
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_tags(self, email: str) -> [Interest]:
+    def get_user_tags(self, user_id: str) -> [Interest]:
         with self.app.app_context():
-            user: User = self.get_user_by_email_or_none(email)
+            user: User = self.get_user_by_index_or_none(user_id)
             if user is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
