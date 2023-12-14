@@ -345,7 +345,7 @@ class UserDatabase:
     def is_friend(self, user_id: int, friend_id: int) -> bool:
         with self.app.app_context():
             friends = self.get_friends(user_id)
-            return friend_id in list(map(lambda x: x.id, friends))
+            return friend_id in list(map(lambda x: x, friends))
 
     # potential __friends part
 
@@ -381,7 +381,7 @@ class UserDatabase:
     def is_potential_friend(self, user_id: int, potential_friend_id: int) -> bool:
         with self.app.app_context():
             friends = self.get_potential_friends(user_id)
-            return potential_friend_id in list(map(lambda x: x.id, friends))
+            return potential_friend_id in list(map(lambda x: x, friends))
 
     # friendship application part
 
