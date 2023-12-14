@@ -61,7 +61,7 @@ class User(Base):
     __tablename__ = "User"
 
     id = sa.Column(Integer, primary_key=True, autoincrement=True)
-    nickname = sa.Column(String(64), index=True, unique=True, nullable=False)
+    nickname = sa.Column(String(64), index=True, nullable=False)
     birth_date = sa.Column(Date, index=True)
     about = sa.Column(String(500))
     email = sa.Column(String(120), index=True, unique=True, nullable=False)
@@ -152,9 +152,9 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def add_user_tag(self, user_name: str, interest_name: str) -> None:
+    def add_user_tag(self, email: str, interest_name: str) -> None:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(user_name)
+            user = self.get_user_by_name_or_none(email)
             interest = self.get_tag_by_name_or_none(interest_name)
             if user and interest:
                 self.db.session.execute(
@@ -164,18 +164,18 @@ class UserDatabase:
                 raise DatabaseExitException("No such user or interest!")
 
     @_raises_database_exit_exception
-    def delete_user_tag(self, user_name: str, interest_name: str) -> None:
+    def delete_user_tag(self, email: str, interest_name: str) -> None:
         with self.app.app_context():
-            user = self.get_user_by_name_or_none(user_name)
+            user = self.get_user_by_name_or_none(email)
             interest = self.get_tag_by_name_or_none(interest_name)
             self.db.session.execute(sa.delete(self.user_interest_m2m).where(and_(
                 self.user_interest_m2m.c.user_id == user.id, self.user_interest_m2m.c.interest_id == interest.id)))
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def delete_user(self, user_name: str) -> None:
+    def delete_user(self, email: str) -> None:
         with self.app.app_context():
-            self.clear_user_tags(user_name)
+            self.clear_user_tags(email)
             self.db.session.query(User).filter_by(nickname=user_name).delete()
             self.db.session.commit()
 
@@ -195,9 +195,9 @@ class UserDatabase:
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_name_or_none(self, nickname: str) -> User:
+    def get_user_by_name_or_none(self, email: str) -> User:
         with self.app.app_context():
-            user = self.db.session.query(User).filter_by(nickname=nickname).first()
+            user = self.db.session.query(User).filter_by(email=email).first()
             return user
 
     @_raises_database_exit_exception
@@ -239,9 +239,9 @@ class UserDatabase:
             return self.db.session.query(Interest).all()
 
     @_raises_database_exit_exception
-    def get_user_tags(self, user_name: str) -> [Interest]:
+    def get_user_tags(self, email: str) -> [Interest]:
         with self.app.app_context():
-            user: User = self.get_user_by_name_or_none(user_name)
+            user: User = self.get_user_by_name_or_none(email)
             if user is None:
                 raise AssertionError("Can't get user's tags if user doesn't exist")
             select = self.db.session.execute(
@@ -273,9 +273,9 @@ class UserDatabase:
             return users
 
     @_raises_database_exit_exception
-    def clear_user_tags(self, user_name: str) -> None:
+    def clear_user_tags(self, email: str) -> None:
         with self.app.app_context():
-            user: User = self.get_user_by_name_or_none(user_name)
+            user: User = self.get_user_by_name_or_none(email)
             self.db.session.execute(
                 sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user.id))
             self.db.session.commit()
