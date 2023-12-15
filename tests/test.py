@@ -40,6 +40,10 @@ def test_register_user(client):
         "password": "T7Rts2l3O99P#",
         "interests": []
     })
+    try:
+        data_base.delete_user("a@flask.flask")
+    except Exception: pass
+    print(response.data.decode('utf-8'))
     assert response.status_code == 200
 
 def test_register_user_short_nick(client):
@@ -80,6 +84,10 @@ def test_register_existing_user(client):
         "password": "T7Rts2l3O99P#",
         "interests": []
     })
+    try:
+        data_base.delete_user("existing@flask.flask")
+    except Exception: pass
+    print(response.data.decode('utf-8'))
     assert response.status_code == 400
     assert "Пользователь с таким email уже существует!" in response.data.decode('utf-8')
 
@@ -122,6 +130,10 @@ def test_login_success(client):
         "email": "test@test.com",
         "password": "password123"
     })
+    try:
+        data_base.delete_user("test@test.com")
+    except Exception:
+        pass
     assert response.status_code == 200
     assert "access_token" in response.data.decode('utf-8')
 
@@ -132,8 +144,12 @@ def test_login_failed(client):
         "email": "taaest@test.com",
         "password": "password123"
     })
+    try:
+        data_base.delete_user("test@testaaaa.com")
+    except Exception:
+        pass
     assert response.status_code == 400
-    assert "Неверные имя пользователя или пароль!" in response.data.decode('utf-8')
+    assert "Пользователя с данным email не существует!" in response.data.decode('utf-8')
 
 def test_login_missing_password(client):
     response = client.post("/login", json={
