@@ -239,7 +239,7 @@ def friends():
     except ValueError:
         return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 400
+        return "Упомянутый друг не найден в базе!", 404
     if not data_base.is_friend(user.id, friend_id):
         return "Эти люди - не друзья!", 400
 
@@ -262,7 +262,7 @@ def outgoing_friend_request():
     except ValueError:
         return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 400
+        return "Упомянутый друг не найден в базе!", 404
     if request.method == "POST":
         if user.id == friend_id:
             return "Невозможно добавить в друзья самого себя!", 400
@@ -293,7 +293,7 @@ def incoming_friend_request():
     except ValueError:
         return "Вместо friend_id подали не число!", 400
     if data_base.get_user_by_index_or_none(friend_id) is None:
-        return "Упомянутый друг не найден в базе!", 400
+        return "Упомянутый друг не найден в базе!", 404
     if not data_base.has_incoming_request(user.id, friend_id):
         return "Нет входящего запроса от упомянутого друга", 400
     if request.method == "DELETE":
