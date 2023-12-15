@@ -100,10 +100,10 @@ def create_token():
             return "Token is actual", 401
     email = request.json.get("email", "")
     password = request.json.get("password", "")
-    if data_base.get_user_by_email_or_none(email) is None:
-        return "Пользователя с данным email не существует!", 400
     if email == "":
         return "Почта не была указана!", 400
+    if data_base.get_user_by_email_or_none(email) is None:
+        return "Пользователя с данным email не существует!", 400
     if password == "":
         return "Введите пароль!", 400
     if not data_base.has_user(email, password):
