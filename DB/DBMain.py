@@ -481,13 +481,17 @@ class UserDatabase:
     @_raises_database_exit_exception
     def create_user(self, nickname: str, email: str, password: str, about: str, birth_date: date,
                     interests: list) -> None:
+        user: User = self.get_user_by_email_or_none(email)
+        if user is not None:
+            raise AssertionError('Go fuck yourself!')
         self.create_user_base(nickname, email, birth_date, about,
                               password)
-        user: User = self.get_user_by_email_or_none(email)
+        user = self.get_user_by_email_or_none(email)
         for i in interests:
             if not self.has_tag(i):
                 self.add_tag(i)
-            self.add_user_tag(user.email, i)
+            if i not in self.get_user_tags_by_name(user.email):
+                self.add_user_tag(user.email, i)
 
     @_raises_database_exit_exception
     def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str,
