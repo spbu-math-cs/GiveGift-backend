@@ -214,12 +214,10 @@ class UserDatabase:
             return interest.name
 
     @_raises_database_exit_exception
-    def get_tag_by_name_or_none(self, name: str) -> str | None:
+    def get_tag_by_name_or_none(self, name: str) -> Interest:
         with self.app.app_context():
             interest = self.db.session.query(Interest).filter_by(name=name).first()
-            if interest is None:
-                return None
-            return interest.name
+            return interest
 
     @_raises_database_exit_exception
     def get_count_of_users(self) -> int:
