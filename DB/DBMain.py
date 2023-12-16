@@ -10,7 +10,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import date
 
 
-
 class DatabaseExitException(Exception):
     """
     Базовая ошибка, выбрасываемая функциями файла.
@@ -189,34 +188,38 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def get_user_by_index_or_none(self, user_id: int) -> User:
+    def get_user_by_index_or_none(self, user_id: int) -> User | None:
         with self.app.app_context():
             user = self.db.session.query(User).get(user_id)
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_name_or_none(self, email: str) -> User:
+    def get_user_by_name_or_none(self, email: str) -> User | None:
         with self.app.app_context():
             user = self.db.session.query(User).filter_by(email=email).first()
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_email_or_none(self, email: str) -> User:
+    def get_user_by_email_or_none(self, email: str) -> User | None:
         with self.app.app_context():
-            user = self.db.session.query(User).filter_by(email=email).first()
+            user: User = self.db.session.query(User).filter_by(email=email).first()
             return user
 
     @_raises_database_exit_exception
-    def get_tag_by_index_or_none(self, interest_id: int) -> Interest:
+    def get_tag_by_index_or_none(self, interest_id: int) -> str | None:
         with self.app.app_context():
-            interest = self.db.session.query(Interest).filter_by(id=interest_id).first()
-            return interest
+            interest: Interest = self.db.session.query(Interest).filter_by(id=interest_id).first()
+            if interest is None:
+                return None
+            return interest.name
 
     @_raises_database_exit_exception
-    def get_tag_by_name_or_none(self, name: str) -> Interest:
+    def get_tag_by_name_or_none(self, name: str) -> str | None:
         with self.app.app_context():
             interest = self.db.session.query(Interest).filter_by(name=name).first()
-            return interest
+            if interest is None:
+                return None
+            return interest.name
 
     @_raises_database_exit_exception
     def get_count_of_users(self) -> int:
@@ -234,12 +237,12 @@ class UserDatabase:
             return self.db.session.query(User).all()
 
     @_raises_database_exit_exception
-    def get_tags(self) -> [Interest]:
+    def get_tags(self) -> [str]:
         with self.app.app_context():
-            return self.db.session.query(Interest).all()
+            return list(map(lambda x: x.name, self.db.session.query(Interest).all()))
 
     @_raises_database_exit_exception
-    def get_user_tags(self, user_id: str) -> [Interest]:
+    def get_user_tags(self, user_id: str) -> [str]:
         with self.app.app_context():
             user: User = self.get_user_by_index_or_none(user_id)
             if user is None:
@@ -249,11 +252,13 @@ class UserDatabase:
                     self.user_interest_m2m.c.user_id == user.id)).fetchall()
             interests = []
             for interest_id in select:
-                interests.append(self.db.session.query(Interest).filter_by(id=interest_id[0]).first())
+                interest: Interest = self.db.session.query(Interest).filter_by(id=interest_id[0]).first()
+                if interest is not None:
+                    interests.append(interest.name)
             return interests
 
     @_raises_database_exit_exception
-    def get_user_tags_by_name(self, email: str) -> [Interest]:
+    def get_user_tags_by_name(self, email: str) -> [str]:
         with self.app.app_context():
             user = self.get_user_by_email_or_none(email)
             if user is None:
@@ -264,18 +269,24 @@ class UserDatabase:
     def get_users_with_tag(self, interest_name: str) -> [User]:
         with self.app.app_context():
             interest: Interest = self.get_tag_by_name_or_none(interest_name)
+            if interest is None:
+                raise AssertionError("Can't get users with tag if tag doesn't exist")
             select = self.db.session.execute(
                 sa.select(self.user_interest_m2m.c.user_id).where(
                     self.user_interest_m2m.c.interest_id == interest.id)).fetchall()
             users = []
             for user_id in select:
-                users.append(self.db.session.query(User).filter_by(id=user_id[0]).first())
+                user: User = self.db.session.query(User).filter_by(id=user_id[0]).first()
+                if user is not None:
+                    users.append(user)
             return users
 
     @_raises_database_exit_exception
     def clear_user_tags(self, email: str) -> None:
         with self.app.app_context():
             user: User = self.get_user_by_email_or_none(email)
+            if user is None:
+                raise AssertionError("Can't clear user's tags if user doesn't exist")
             self.db.session.execute(
                 sa.delete(self.user_interest_m2m).where(self.user_interest_m2m.c.user_id == user.id))
             self.db.session.commit()
