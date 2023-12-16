@@ -485,11 +485,11 @@ class UserDatabase:
                     interests: list) -> None:
         self.create_user_base(nickname, email, birth_date, about,
                               password)
-        user = self.get_user_by_email_or_none(email)
+        user: User = self.get_user_by_email_or_none(email)
         for i in interests:
             if not self.has_tag(i):
                 self.add_tag(i)
-            self.add_user_tag(user.nickname, i)
+            self.add_user_tag(user.email, i)
 
     @_raises_database_exit_exception
     def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str,
