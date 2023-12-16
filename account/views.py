@@ -50,7 +50,7 @@ def register():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 400
-    add_default_preferences(interests)
+    interests = get_random_preferences(5)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     if current_email := get_jwt_identity():
@@ -84,12 +84,8 @@ def get_prettified_age(age) -> str:
     return f'{age} {get_noun(age, "год", "года", "лет")}'
 
 
-def add_default_preferences(interests) -> None:
-    for add_preference in range(5):
-        tag_count = data_base.get_count_of_tags()
-        if tag_count > 1:
-            index = random.randint(0, tag_count - 1)
-            interests.append(data_base.get_tags()[index])
+def get_random_preferences(num_of_preferences) -> [str]:
+    return random.sample(data_base.get_tags(), num_of_preferences)
 
 
 @app.route('/login', methods=["POST"])

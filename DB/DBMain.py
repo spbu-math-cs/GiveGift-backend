@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import datetime
 
 from flask import Flask
@@ -225,7 +227,7 @@ class UserDatabase:
             return self.db.session.query(User).count()
 
     @_raises_database_exit_exception
-    def get_count_of_tags(self) -> int:
+    def get_count_of_tags(self) -> int:  # Видимо, теперь не нужна
         with self.app.app_context():
             return self.db.session.query(Interest).count()
 
