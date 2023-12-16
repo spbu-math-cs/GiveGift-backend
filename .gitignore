@@ -1,4 +1,4 @@
 /.idea
 /venv
-/instance
-*/__pycache__
+*.db
+*.pyc
