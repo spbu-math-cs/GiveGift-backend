@@ -188,19 +188,19 @@ class UserDatabase:
             self.db.session.commit()
 
     @_raises_database_exit_exception
-    def get_user_by_index_or_none(self, user_id: int) -> User | None:
+    def get_user_by_index_or_none(self, user_id: int) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).get(user_id)
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_name_or_none(self, email: str) -> User | None:
+    def get_user_by_name_or_none(self, email: str) -> User:
         with self.app.app_context():
             user = self.db.session.query(User).filter_by(email=email).first()
             return user
 
     @_raises_database_exit_exception
-    def get_user_by_email_or_none(self, email: str) -> User | None:
+    def get_user_by_email_or_none(self, email: str) -> User:
         with self.app.app_context():
             user: User = self.db.session.query(User).filter_by(email=email).first()
             return user
