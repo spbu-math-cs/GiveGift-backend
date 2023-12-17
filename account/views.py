@@ -62,19 +62,8 @@ def register():
     return {"access_token": access_token}, 200
 
 
-def get_noun(number, one, two, five):
-    n = abs(number) % 100
-    if 5 <= n <= 20:
-        return five
 
-    n %= 10
-    if n == 1:
-        return one
-    if 2 <= n <= 4:
-        return two
-    return five
-
-
+"""
 def calculate_age(birthday: datetime.date) -> int:
     today = date.today()
     return today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
@@ -82,7 +71,7 @@ def calculate_age(birthday: datetime.date) -> int:
 
 def get_prettified_age(age) -> str:
     return f'{age} {get_noun(age, "год", "года", "лет")}'
-
+"""
 
 def get_random_preferences(num_of_preferences) -> [str]:
     return random.sample(data_base.get_tags(), num_of_preferences)
@@ -113,22 +102,23 @@ def set_info():
     user_id = request.json.get("id", "")
     nickname = request.json.get("nickname", "")
     email = request.json.get("email", "")
-    password = request.json.get("password", "")
+    # password = request.json.get("password", "")
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
-    interests = request.json.get("_interests", "")
+    interests = request.json.get("interests", "")
     if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Заполните поле email!", 400
-    if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль!", 400
+    """if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password): TODO: ПАРОЛЬ МЕНЯЕТСЯ В ДРУГОМ МЕСТЕ (если вообще будет)
+        return "Введите корректный пароль!", 400"""
     if user_id == "":
         return "Введённый id пуст!", 400
     if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 400
-    if data_base.get_user_by_email_or_none(email) is not None:
-        return "Пользователь с данным email уже существует!", 400
+    """if data_base.get_user_by_email_or_none(email) is not None: TODO: МЫ НЕ МОЖЕМ МЕНЯТЬ EMAIL!!!!!!!!!!!!!!!!
+        return "Пользователь с данным email уже существует!", 400"""
     if birth_date != "":
         try:
+            print(birth_date)
             birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
         except ValueError:
             return "Логическая ошибка! Дата не парсится!", 400
@@ -142,7 +132,7 @@ def set_info():
     except ValueError:
         return "Вместо id подали не число!"
     data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
-                                  nickname=nickname, birth_date=birth_date, password=password)
+                                  nickname=nickname, birth_date=birth_date) # TODO: ТУТ НАХУЙ ПАРОЛЬ НЕ НУЖЕН
     return "OK", 200
 
 
@@ -152,7 +142,7 @@ def get_safe_user_info_simple(user) -> dict:
         "nickname": str(user.nickname),
         "email": str(user.email),
         "about": str(user.about),
-        "birth_date": get_prettified_age(calculate_age(user.birth_date)) if user.birth_date is not None else "",
+        "birth_date": user.birth_date, # strftime("%d-%m-%Y")
         "interests": data_base.get_user_tags(user.id)
     }
 
