@@ -132,7 +132,7 @@ def set_info():
     except ValueError:
         return "Вместо id подали не число!"
     data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
-                                  nickname=nickname, birth_date=birth_date) # TODO: ТУТ НАХУЙ ПАРОЛЬ НЕ НУЖЕН
+                                  nickname=nickname, birth_date=birth_date)
     return "OK", 200
 
 

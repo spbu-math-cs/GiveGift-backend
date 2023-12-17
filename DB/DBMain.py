@@ -305,15 +305,14 @@ class UserDatabase:
             return tag in list(map(lambda x: x.name, self.db.session.query(Interest).all()))
 
     @_raises_database_exit_exception
-    def set_to_user_with_id(self, user_id: int, nickname: str, email: str, birth_date: datetime.datetime,
-                            about: str, password: str) -> None:
+    def set_to_user_with_id_base(self, user_id: int, nickname: str, email: str, birth_date: datetime.datetime,
+                                 about: str) -> None:
         with self.app.app_context():
             self.db.session.query(User).filter_by(id=user_id).update({
                 'nickname': nickname,
                 'email': email,
                 'birth_date': birth_date,
-                'about': about,
-                'password_hash': generate_password_hash(password)
+                'about': about
             }, synchronize_session=False)
             self.db.session.commit()
 
@@ -496,10 +495,9 @@ class UserDatabase:
                 self.add_user_tag(user.email, i)
 
     @_raises_database_exit_exception
-    def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str, password: str,
+    def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str,
                             birth_date: date) -> None:
-        self.set_to_user_with_id(user_id, nickname, email, birth_date, about,
-                                 password)
+        self.set_to_user_with_id_base(user_id, nickname, email, birth_date, about)
         for i in interests:
             if not self.has_tag(i):
                 self.add_tag(i)
