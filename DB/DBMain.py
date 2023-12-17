@@ -501,7 +501,7 @@ class UserDatabase:
         for i in interests:
             if not self.has_tag(i):
                 self.add_tag(i)
-            self.add_user_tag(nickname, i)
+            self.add_user_tag(email, i)
 
     @_raises_database_exit_exception
     def has_outgoing_request(self, user_id: int, friend_id: int) -> bool:
