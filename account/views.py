@@ -110,10 +110,6 @@ def set_info():
     if type(interests) is not list:
         return "Логическая ошибка! Список не парсится!", 400
 
-    # TODO: учитывает unique-constraint, но не учитывает удаление интересов
-    # TODO: т.е. это баг
-    user_tags = data_base.get_user_tags(user_id)
-    interests = list(filter(lambda x: x not in user_tags, interests))
     for interest in interests:
         if not data_base.has_tag(interest):
             return "К сожалению, выбранный тег не поддерживается!", 400
