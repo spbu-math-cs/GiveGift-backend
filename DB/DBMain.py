@@ -498,7 +498,7 @@ class UserDatabase:
     def set_to_user_with_id(self, user_id: int, about: str, email: str, interests: list, nickname: str,
                             birth_date: date) -> None:
         self.set_to_user_with_id_base(user_id, nickname, email, birth_date, about)
-        self.clear_user_tags(user_id)
+        self.clear_user_tags(email)
         for i in interests:
             if not self.has_tag(i):
                 self.add_tag(i)
