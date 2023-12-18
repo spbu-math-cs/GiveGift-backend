@@ -3,6 +3,7 @@ import random
 import re
 from datetime import timedelta, datetime, timezone, date
 
+from dateutil import parser
 from flask import request, jsonify
 from flask_jwt_extended import JWTManager, create_access_token, \
     unset_jwt_cookies, get_jwt_identity, get_jwt, \
@@ -62,17 +63,6 @@ def register():
     return {"access_token": access_token}, 200
 
 
-
-"""
-def calculate_age(birthday: datetime.date) -> int:
-    today = date.today()
-    return today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
-
-
-def get_prettified_age(age) -> str:
-    return f'{age} {get_noun(age, "год", "года", "лет")}'
-"""
-
 def get_random_preferences(num_of_preferences) -> [str]:
     return random.sample(data_base.get_tags(), num_of_preferences)
 
@@ -102,28 +92,28 @@ def set_info():
     user_id = request.json.get("id", "")
     nickname = request.json.get("nickname", "")
     email = request.json.get("email", "")
-    # password = request.json.get("password", "")
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
     if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Заполните поле email!", 400
-    """if password == "" or not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password): TODO: ПАРОЛЬ МЕНЯЕТСЯ В ДРУГОМ МЕСТЕ (если вообще будет)
-        return "Введите корректный пароль!", 400"""
     if user_id == "":
         return "Введённый id пуст!", 400
     if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 400
-    """if data_base.get_user_by_email_or_none(email) is not None: TODO: МЫ НЕ МОЖЕМ МЕНЯТЬ EMAIL!!!!!!!!!!!!!!!!
-        return "Пользователь с данным email уже существует!", 400"""
-    if birth_date != "":
+
+    if birth_date != "" and birth_date is not None:
         try:
-            print(birth_date)
-            birth_date = datetime.strptime(birth_date, "%d-%m-%Y").date()
+            birth_date = parser.parse(birth_date).date()
         except ValueError:
             return "Логическая ошибка! Дата не парсится!", 400
     if type(interests) is not list:
         return "Логическая ошибка! Список не парсится!", 400
+
+    # TODO: учитывает unique-constraint, но не учитывает удаление интересов
+    # TODO: т.е. это баг
+    user_tags = data_base.get_user_tags(user_id)
+    interests = list(filter(lambda x: x not in user_tags, interests))
     for interest in interests:
         if not data_base.has_tag(interest):
             return "К сожалению, выбранный тег не поддерживается!", 400
