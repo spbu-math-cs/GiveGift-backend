@@ -46,7 +46,7 @@
         "password": "...",
         "birth_date": "...",
         "about": "...",
-        "interests": [...]
+        "interests": "[...]"
     }
     ```
   **Required: `nickname`, `email`, `password`**
@@ -93,8 +93,8 @@
         "email": "...",
         "about": "...",
         "birth_date": "...",
-        "interests": [...],
-        "friends": [...]
+        "interests": "[...]",
+        "friends": "[...]"
     }
     ```
 
@@ -108,7 +108,7 @@
         "email": "...",
         "about": "...",
         "birth_date": "...",
-        "interests": [...]
+        "interests": "[...]"
     }
    ```
    #### Вывод
@@ -127,9 +127,9 @@
       "email": "...",
       "about": "...",
       "birth_date": "...",
-      "interests": [...],
-      "friends": [...],
-      "is_me": True/False
+      "interests": "[...]",
+      "friends": "[...]",
+      "is_me": "true/false"
   }
   ```
 
@@ -141,9 +141,9 @@
   #### Вывод
     ``` json
   {
-        "friends": [...]
-        "incoming_requests": [...]
-        "outgoing_requests": [...]
+        "friends": "[...]"
+        "incoming_requests": "[...]"
+        "outgoing_requests": "[...]"
   }
     ```
 
@@ -208,8 +208,8 @@
     * Иначе:
       ``` json
       {
-          "interests":[...],
-          "price_range":[...,...]
+          "interests": "[...]",
+          "price_range": "[start_price, end_price]"
       }
       ```
         * `interests` - список интересов
@@ -237,7 +237,7 @@
   #### Вывод:
    ``` json
       {
-          "all_interests": [...]
+          "all_interests": "[...]"
       }
   ```
 
@@ -257,10 +257,8 @@
   #### Входные данные
     ``` json
     {
-        "new_interests": [...],
-        "edit_interests": [
-            {"interest_name": "...", "new_name": "..."},
-        ]
+        "new_interests": "[...]",
+        "edit_interests": "[{'interest_name': '...', 'new_name': '...'}, ...]"
     }
     ```
     * `new_interests` - список из строк, новые предпочтения не должны совпадать ни с одним из старых
