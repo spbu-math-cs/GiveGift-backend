@@ -64,7 +64,9 @@ def register():
 
 
 def get_random_preferences(num_of_preferences) -> [str]:
-    return random.sample(data_base.get_tags(), num_of_preferences)
+    if num_of_preferences < data_base.get_count_of_tags():
+        return random.sample(data_base.get_tags(), num_of_preferences)
+    return []
 
 
 @app.route('/login', methods=["POST"])
