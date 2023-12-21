@@ -1,5 +1,3 @@
-import asyncio
-
 from ideas.ai import generate_ideas_or_none, generate_link
 from ideas.parser import get_image_link_or_none
 

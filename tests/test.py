@@ -5,6 +5,7 @@ import pytest
 from core import app
 from DB import data_base
 
+
 @pytest.fixture()
 def my_app():
     app.config.update({
@@ -40,11 +41,14 @@ def test_register_user(client):
         "password": "T7Rts2l3O99P#",
         "interests": []
     })
+    # noinspection PyBroadException
     try:
         data_base.delete_user("a@flask.flask")
-    except Exception: pass
+    except Exception:
+        pass
     print(response.data.decode('utf-8'))
     assert response.status_code == 200
+
 
 def test_register_user_short_nick(client):
     response = client.post("/register", json={
@@ -56,6 +60,7 @@ def test_register_user_short_nick(client):
     assert response.status_code == 400
     assert "Слишком короткий Ник!" in response.data.decode('utf-8')
 
+
 def test_register_missing_fields(client):
     response = client.post("/register", json={
         "nickname": "Flask",
@@ -64,6 +69,7 @@ def test_register_missing_fields(client):
     })
     assert response.status_code == 400
     assert "Заполните все поля!" in response.data.decode('utf-8')
+
 
 def test_register_invalid_email(client):
     response = client.post("/register", json={
@@ -75,6 +81,7 @@ def test_register_invalid_email(client):
     assert response.status_code == 400
     assert "Введите корректный адрес электронной почты!" in response.data.decode('utf-8')
 
+
 def test_register_existing_user(client):
     existing_email = "existing@flask.flask"
     data_base.create_user("ExistingUser", existing_email, "T7Rts2l3O99P#", 'be', date(1600, 1, 1), [])
@@ -84,12 +91,15 @@ def test_register_existing_user(client):
         "password": "T7Rts2l3O99P#",
         "interests": []
     })
+    # noinspection PyBroadException
     try:
         data_base.delete_user("existing@flask.flask")
-    except Exception: pass
+    except Exception:
+        pass
     print(response.data.decode('utf-8'))
     assert response.status_code == 400
     assert "Пользователь с таким email уже существует!" in response.data.decode('utf-8')
+
 
 def test_register_invalid_birth_date(client):
     response = client.post("/register", json={
@@ -102,6 +112,7 @@ def test_register_invalid_birth_date(client):
     assert response.status_code == 400
     assert "Логическая ошибка! Такого быть не должно! Дата - не дата!" in response.data.decode('utf-8')
 
+
 def test_register_interests_not_a_list(client):
     response = client.post("/register", json={
         "nickname": "Flask",
@@ -112,6 +123,7 @@ def test_register_interests_not_a_list(client):
     assert response.status_code == 400
     assert "Логическая ошибка! Такого быть не должно! Список - не список!" in response.data.decode('utf-8')
 
+
 def test_register_unavailable_interest(client):
     response = client.post("/register", json={
         "nickname": "Flask",
@@ -120,7 +132,9 @@ def test_register_unavailable_interest(client):
         "interests": ["unknown_interest"]
     })
     assert response.status_code == 400
-    assert "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!" in response.data.decode('utf-8')
+    # noinspection IncorrectFormatting
+    assert "Логическая ошибка! Такого быть не должно!" \
+           " Отсутствует контроль за интересами пользователя!" in response.data.decode('utf-8')
 
 
 def test_login_success(client):
@@ -130,12 +144,14 @@ def test_login_success(client):
         "email": "test@test.com",
         "password": "password123"
     })
+    # noinspection PyBroadException
     try:
         data_base.delete_user("test@test.com")
     except Exception:
         pass
     assert response.status_code == 200
     assert "access_token" in response.data.decode('utf-8')
+
 
 def test_login_failed(client):
     data_base.create_user("testuser", "test@testaaaa.com", "password123", 'be', date(1600, 1, 1), [])
@@ -144,12 +160,14 @@ def test_login_failed(client):
         "email": "taaest@test.com",
         "password": "password123"
     })
+    # noinspection PyBroadException
     try:
         data_base.delete_user("test@testaaaa.com")
     except Exception:
         pass
     assert response.status_code == 400
     assert "Пользователя с данным email не существует!" in response.data.decode('utf-8')
+
 
 def test_login_missing_password(client):
     response = client.post("/login", json={
@@ -158,6 +176,7 @@ def test_login_missing_password(client):
     })
     assert response.status_code == 400
     assert "Введите пароль!" in response.data.decode('utf-8')
+
 
 def test_login_missing_email(client):
     response = client.post("/login", json={

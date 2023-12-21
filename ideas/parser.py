@@ -3,7 +3,11 @@ import requests
 
 
 def get_link(name_of_product, min_budget, max_budget) -> str:
-    return f'https://search.wb.ru/exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&suppressSpellcheck=false'
+    # noinspection IncorrectFormatting
+    return 'https://search.wb.ru/'\
+           f'exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;'\
+           f'{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&'\
+           'suppressSpellcheck=false'
 
 
 def get_query_link(name_of_product, min_budget, max_budget):
@@ -14,12 +18,14 @@ def get_query_link(name_of_product, min_budget, max_budget):
 
 
 def get_id(response):
+    # noinspection PyBroadException
     try:
         return response['data']['products'][0]['id']
     except:
         pass
 
 
+# noinspection PyBroadException
 def get_image_link(product_id):
     try:
         _shot_id = product_id // 100000
@@ -57,6 +63,7 @@ def get_image_link(product_id):
         pass
 
 
+# noinspection PyBroadException
 def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int) -> Optional[str]:
     try:
         return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget)))
