@@ -1,12 +1,12 @@
-from typing import Optional
+from typing import Optional, List, Any
 import requests
 
 
 def get_link(name_of_product, min_budget, max_budget) -> str:
     # noinspection IncorrectFormatting
-    return 'https://search.wb.ru/'\
-           f'exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;'\
-           f'{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&'\
+    return 'https://search.wb.ru/' \
+           f'exactmatch/ru/common/v4/search?appType=1&curr=rub&dest=-1257786&priceU={min_budget}00;' \
+           f'{max_budget}00&page=1&query={name_of_product}&resultset=catalog&sort=popular&spp=24&' \
            'suppressSpellcheck=false'
 
 
@@ -17,12 +17,12 @@ def get_query_link(name_of_product, min_budget, max_budget):
     return response.json()
 
 
-def get_id(response, adult):
+def get_id_and_name(response, adult):
     # noinspection PyBroadException
     try:
-        for product in response['data']['products'][0]:
-            if product['isAdult']==adult:
-                return product['id']
+        for product in response['data']['products']:
+            if product['isAdult'] == adult:
+                return [product['id'], product['name']]
     except:
         pass
 
@@ -66,8 +66,9 @@ def get_image_link(product_id):
 
 
 # noinspection PyBroadException
-def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool) -> Optional[str]:
+def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool) -> list[str | Any]:
     try:
-        return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget), adult))
+        id_and_name = get_id_and_name(get_query_link(product_name, min_budget, max_budget), adult)
+        return [get_image_link(id_and_name[0]), id_and_name[1]]
     except:
         pass
