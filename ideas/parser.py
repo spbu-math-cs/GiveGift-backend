@@ -17,10 +17,12 @@ def get_query_link(name_of_product, min_budget, max_budget):
     return response.json()
 
 
-def get_id(response):
+def get_id(response, adult):
     # noinspection PyBroadException
     try:
-        return response['data']['products'][0]['id']
+        for product in response['data']['products'][0]:
+            if product['isAdult']==adult:
+                return product['id']
     except:
         pass
 
@@ -64,8 +66,8 @@ def get_image_link(product_id):
 
 
 # noinspection PyBroadException
-def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int) -> Optional[str]:
+def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool) -> Optional[str]:
     try:
-        return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget)))
+        return get_image_link(get_id(get_query_link(product_name, min_budget, max_budget), adult))
     except:
         pass
