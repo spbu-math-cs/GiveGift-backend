@@ -33,8 +33,6 @@ def _raises_database_exit_exception(func):
 
     return _wrapper
 
-    # TODO: add exception handling
-
 
 class Base(DeclarativeBase):
     pass
@@ -69,12 +67,7 @@ class User(Base):
     password_hash = sa.Column(String(128))
     is_token_actual = sa.Column(Boolean, index=True)
     last_time_seen = sa.Column(DateTime, index=True)
-
-    # TODO: Check, why it doesn't work (+ fix m2m)
-    # _interests = relationship('Interest', secondary='user_interest', backref='User')
-    # __friends = relationship('User', secondary='user_friend', backref='User')
-    # __incoming_requests = relationship('User', secondary='user_potential_friend', backref='User')
-    # __outgoing_requests = relationship('User', secondary='user_friendship_application', backref='User')
+    is_admin = sa.Column(Boolean, index=True)
 
     def __repr__(self):
         return '<User {}>'.format(self.nickname)
@@ -118,8 +111,6 @@ class UserDatabase:
             sa.Column("user_id", sa.ForeignKey('User.id'), primary_key=True),
             sa.Column("message_id", sa.ForeignKey('Message.id'), primary_key=True)
         )
-
-    # TODO: check why foreign keys work so bad
 
     @_raises_database_exit_exception
     def create_tables(self) -> None:
@@ -320,6 +311,12 @@ class UserDatabase:
     def set_user_token_as(self, user_id: int, status: bool):
         with self.app.app_context():
             self.db.session.query(User).filter_by(id=user_id).update({'is_token_actual': status})
+            self.db.session.commit()
+
+    @_raises_database_exit_exception
+    def set_user_admin_as(self, user_id: int, status: bool):
+        with self.app.app_context():
+            self.db.session.query(User).filter_by(id=user_id).update({'is_admin': status})
             self.db.session.commit()
 
     # __friends part
