@@ -1,5 +1,4 @@
-from typing import Optional, List, Any
-import requests
+from requests import get
 
 
 def get_link(name_of_product, min_budget, max_budget) -> str:
@@ -11,7 +10,7 @@ def get_link(name_of_product, min_budget, max_budget) -> str:
 
 
 def get_query_link(name_of_product, min_budget, max_budget):
-    response = requests.get(
+    response = get(
         get_link(name_of_product=name_of_product, min_budget=min_budget, max_budget=max_budget)
     )
     return response.json()

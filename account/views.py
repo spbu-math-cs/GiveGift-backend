@@ -1,22 +1,19 @@
-import json
-import os.path
-import random
-import re
+from json import dumps
+from os import path
+from random import randint, sample
+from re import fullmatch
 from flask import send_file
 from datetime import timedelta, datetime, timezone
-
 from werkzeug.utils import secure_filename
-
 from dateutil import parser
 from flask import request, jsonify
-from flask_jwt_extended import JWTManager, create_access_token, \
-    unset_jwt_cookies, get_jwt_identity, get_jwt, \
-    jwt_required
+from flask_jwt_extended import JWTManager, create_access_token, unset_jwt_cookies,\
+    get_jwt_identity, get_jwt, jwt_required
 
 from DB import data_base
 from core import app
 
-app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[random.randint(0, 9)] for _ in range(random.randint(8, 80))])
+app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[randint(0, 9)] for _ in range(randint(8, 80))])
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 app.config["UPLOAD_FOLDER"] = "images"
@@ -46,9 +43,9 @@ def register():
         return "Заполните все поля!", 400
     if len(nickname) < 2:
         return "Слишком короткий Ник!", 400
-    if not re.fullmatch("\\S+@\\S+\\.\\S+", email):
+    if not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Введите корректный адрес электронной почты!", 400
-    if not re.fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
+    if not fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
         return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
                "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
                "восьми символов!", 400
@@ -95,9 +92,9 @@ def add_image():
     if files[0] and is_name_allowed(files[0].filename):
         try:
             filename = secure_filename(files[0].filename)
-            files[0].save(os.path.abspath(
-                os.path.join(app.config['UPLOAD_FOLDER'],
-                             str(user.id) + "." + filename.rsplit('.', 1)[1].lower())))
+            files[0].save(path.abspath(
+                path.join(app.config['UPLOAD_FOLDER'],
+                          str(user.id) + "." + filename.rsplit('.', 1)[1].lower())))
             # add name for user
             return "OK", 200
         except:
@@ -132,19 +129,19 @@ def send_image(i):
         else:
             index = user.id
     for extension in EXTENSIONS:
-        file_path = os.path.abspath(
-            os.path.join(app.config['UPLOAD_FOLDER'], str(index) + "." + extension))
-        if os.path.exists(file_path):
+        file_path = path.abspath(
+            path.join(app.config['UPLOAD_FOLDER'], str(index) + "." + extension))
+        if path.exists(file_path):
             return send_file(file_path), 200
-    file_path = os.path.abspath(os.path.join(app.config['UPLOAD_FOLDER'], "default_image.jpg"))
-    if os.path.exists(file_path):
+    file_path = path.abspath(path.join(app.config['UPLOAD_FOLDER'], "default_image.jpg"))
+    if path.exists(file_path):
         return send_file(file_path), 200
     return "Default file not found!", 400
 
 
 def get_random_preferences(num_of_preferences) -> [str]:
     if num_of_preferences < data_base.get_count_of_tags():
-        return random.sample(data_base.get_tags(), num_of_preferences)
+        return sample(data_base.get_tags(), num_of_preferences)
     return []
 
 
@@ -176,7 +173,7 @@ def set_info():
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
-    if email == "" or not re.fullmatch("\\S+@\\S+\\.\\S+", email):
+    if email == "" or not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Заполните поле email!", 400
     if user_id == "":
         return "Введённый id пуст!", 400
@@ -383,7 +380,7 @@ def refresh_expiring_jwts(response):
             data = response.get_json()
             if type(data) is dict:
                 data['access_token'] = access_token
-                response.data = json.dumps(data)
+                response.data = dumps(data)
         return response
     except (RuntimeError, KeyError):
         return response

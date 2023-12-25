@@ -1,7 +1,7 @@
-import datetime
+from datetime import datetime
 from typing import List, Optional
+from g4f import ChatCompletion
 
-import g4f
 
 
 def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]:
@@ -12,14 +12,14 @@ def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]
 
 def ask_gpt_or_none(num_of_ideas: int, preferences: List[str]):
     try:
-        response: str = g4f.ChatCompletion.create(
+        response: str = ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Use Russian language only"},
                 {"role": "user",
                  "content": f"Подбери {num_of_ideas}  подарков человеку,"
                             f" учитывай что он хотел бы получить в качестве подарка что то,"
-                            f" что связано с {', '.join(preferences)} и {datetime.datetime.now()}. "
+                            f" что связано с {', '.join(preferences)} и {datetime.now()}. "
                             f"не пиши описания к подаркам, нужно просто их название"},
             ]
         )

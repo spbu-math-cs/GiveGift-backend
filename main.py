@@ -1,10 +1,10 @@
 from signal import signal, SIGINT
-import sys
+from sys import exit
 
 
 # noinspection PyUnusedLocal
 def signal_handler(signal_number, frame):
-    sys.exit(0)
+    exit(0)
 
 
 if __name__ == "__main__":
