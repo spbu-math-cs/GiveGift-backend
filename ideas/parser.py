@@ -20,13 +20,15 @@ def get_query_link(name_of_product, min_budget, max_budget):
 def get_id_and_name(response, adult):
     # noinspection PyBroadException
     try:
-        if adult is False:
-            for product in response['data']['products']:
-                if product['isAdult'] == adult:
-                    return [product['id'], product['name']]
-        else:
+        if adult == True:
+            print(response['data']['products'][0]['name'])
             return [response['data']['products'][0]['id'], response['data']['products'][0]['name']]
+        else:
+            for product in response['data']['products']:
+                if 'isAdult' not in product:
+                    return [product['id'], product['name']]
     except:
+        print('No products found')
         pass
 
 
@@ -69,7 +71,7 @@ def get_image_link(product_id):
 
 
 # noinspection PyBroadException
-def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool):
+def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool) -> list[str | Any]:
     try:
         id_and_name = get_id_and_name(get_query_link(product_name, min_budget, max_budget), adult)
         return [get_image_link(id_and_name[0]), id_and_name[1]]
