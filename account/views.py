@@ -130,8 +130,9 @@ def get_safe_user_info_simple(user) -> dict:
         "nickname": str(user.nickname),
         "email": str(user.email),
         "about": str(user.about),
-        "birth_date": user.birth_date, # strftime("%d-%m-%Y")
-        "interests": data_base.get_user_tags(user.id)
+        "birth_date": user.birth_date,  # strftime("%d-%m-%Y")
+        "interests": data_base.get_user_tags(user.id),
+        "is_admin": str(user.is_admin)
     }
 
 
