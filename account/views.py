@@ -2,8 +2,9 @@ import json
 import os.path
 import random
 import re
-from datetime import timedelta, datetime, timezone, date
-from flask_marshmallow import Marshmallow
+from flask import send_file
+from datetime import timedelta, datetime, timezone
+
 from werkzeug.utils import secure_filename
 
 from dateutil import parser
@@ -24,12 +25,12 @@ EXTENSIONS = ['png', 'bmp', 'jpg']
 
 
 def is_name_allowed(filename: str) -> bool:
+    print(filename.rsplit('.', 1)[1].lower())
     return '.' in filename and '/' not in filename and '\\' not in filename and \
            filename.rsplit('.', 1)[1].lower() in EXTENSIONS
 
 
 jwt = JWTManager(app=app)
-marshmallow_app = Marshmallow(app)
 
 
 @app.route('/register', methods=["POST"])
@@ -65,19 +66,6 @@ def register():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 400
-    if "files[]" not in request.files:
-        return "Аватарка не была добавлена!", 400
-    files = request.files.getlist('files[]')
-    if len(files) != 0:
-        return "Должен быть передан ровно один файл!", 400
-    if files[0] and is_name_allowed(files[0].filename):
-        try:
-            filename = secure_filename(files[0].filename)
-            files[0].save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        except:
-            return "Ошибка во время обработки файла!", 400
-    else:
-        return "Запрещено давать файлу такое имя!", 400
     interests = get_random_preferences(5)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
@@ -88,6 +76,70 @@ def register():
     access_token = create_access_token(identity=email)
     data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, True)
     return {"access_token": access_token}, 200
+
+
+@app.route('/add_image', methods=["POST"])
+@jwt_required()
+def add_image():
+    if email := get_jwt_identity():
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
+            return "Token is not actual", 401
+    user = data_base.get_user_by_email_or_none(email)
+    if user is None:
+        return "Не существует такого пользователя!", 400
+    if "files[]" not in request.files:
+        return "Аватарка не была добавлена!", 400
+    files = request.files.getlist('files[]')
+    if len(files) != 1:
+        return "Должен быть передан ровно один файл!", 400
+    if files[0] and is_name_allowed(files[0].filename):
+        try:
+            filename = secure_filename(files[0].filename)
+            files[0].save(os.path.abspath(
+                os.path.join(app.config['UPLOAD_FOLDER'],
+                             str(user.id) + "." + filename.rsplit('.', 1)[1].lower())))
+            # add name for user
+            return "OK", 200
+        except:
+            return "Ошибка во время обработки файла!", 400
+    else:
+        print(files)
+        return "Запрещено давать файлу такое имя!", 400
+
+
+@app.route('/send_image/<i>', methods=["GET"])
+@jwt_required(optional=True)
+def send_image(i):
+    email = get_jwt_identity()
+    try:
+        index = int(i)
+    except ValueError:
+        return "Некорректный запрос!", 500
+    if email is None:
+        if index == 0:
+            return "Зарегистрируйтесь или войдите в систему!", 500
+        if not data_base.get_user_by_index_or_none(index):
+            return "Пользователь с таким именем не найден!", 400
+    else:
+        if not data_base.get_user_by_email_or_none(email).is_token_actual:
+            return "Token is not actual", 401
+        user = data_base.get_user_by_email_or_none(email)
+        if user is None:
+            return "Не существует такого пользователя!", 400
+        if index != 0:
+            if not data_base.get_user_by_index_or_none(index):
+                return "Пользователь с таким именем не найден!", 400
+        else:
+            index = user.id
+    for extension in EXTENSIONS:
+        file_path = os.path.abspath(
+            os.path.join(app.config['UPLOAD_FOLDER'], str(index) + "." + extension))
+        if os.path.exists(file_path):
+            return send_file(file_path), 200
+    file_path = os.path.abspath(os.path.join(app.config['UPLOAD_FOLDER'], "default_image.jpg"))
+    if os.path.exists(file_path):
+        return send_file(file_path), 200
+    return "Default file not found!", 400
 
 
 def get_random_preferences(num_of_preferences) -> [str]:
