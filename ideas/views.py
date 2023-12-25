@@ -14,6 +14,7 @@ from DB import data_base
 def index():
     interests = request.json.get("interests", "")
     price_range = request.json.get("price_range", "")
+    is_adult = request.json.get("is_adult", "")
     if current_email := get_jwt_identity():
         friend_id = request.json.get("friend_id", "")
         if friend_id != "":
@@ -26,6 +27,12 @@ def index():
                 return "Указанный человек не является Вашим другом!", 400
             friend = data_base.get_user_by_index_or_none(friend_id)
             interests = data_base.get_user_tags(friend.id)
+    if is_adult == "":
+        return "Параметр is_adult не указан!", 400
+    try:
+        is_adult = bool(is_adult)
+    except ValueError:
+        return "Параметр is_adult не соответствует формату!", 400
     if interests == "":
         return "Интересы друга не указаны!", 400
     if price_range == "":
@@ -44,7 +51,7 @@ def index():
         return "Ценовой диапазон должен быть задан числами!", 400
     if price_range[0] < 0 or price_range[1] < price_range[0]:
         return "Ценовой диапазон должен быть задан неотрицательными числами, первое не превышает второго!", 400
-    return generate_ideas(interests, price_range)
+    return generate_ideas(interests, price_range, is_adult)
 
 
 @app.route('/messages', methods=["GET", "POST"])
@@ -62,7 +69,7 @@ def messages():
             requested_user = data_base.get_user_by_index_or_none(requested_user_id)
             ideas = []
             while len(ideas) == 0:
-                ideas = generate_ideas(data_base.get_user_tags(requested_user.id), [0, 1000])
+                ideas = generate_ideas(data_base.get_user_tags(requested_user.id), [0, 1000], False)
             data_base.add_message(
                 user.id,
                 f"Подари {requested_user.nickname} {ideas[0]['title']}",
