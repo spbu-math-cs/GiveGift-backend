@@ -20,9 +20,12 @@ def get_query_link(name_of_product, min_budget, max_budget):
 def get_id_and_name(response, adult):
     # noinspection PyBroadException
     try:
-        for product in response['data']['products']:
-            if product['isAdult'] == adult:
-                return [product['id'], product['name']]
+        if adult is False:
+            for product in response['data']['products']:
+                if product['isAdult'] == adult:
+                    return [product['id'], product['name']]
+        else:
+            return [response['data']['products'][0]['id'], response['data']['products'][0]['name']]
     except:
         pass
 
