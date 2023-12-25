@@ -1,7 +1,10 @@
 import json
+import os.path
 import random
 import re
 from datetime import timedelta, datetime, timezone, date
+from flask_marshmallow import Marshmallow
+from werkzeug.utils import secure_filename
 
 from dateutil import parser
 from flask import request, jsonify
@@ -15,7 +18,18 @@ from core import app
 app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[random.randint(0, 9)] for _ in range(random.randint(8, 80))])
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
+app.config["UPLOAD_FOLDER"] = "images"
+app.config["MAX_CONTENT_LENGTH"] = 640 * 480
+EXTENSIONS = ['png', 'bmp', 'jpg']
+
+
+def is_name_allowed(filename: str) -> bool:
+    return '.' in filename and '/' not in filename and '\\' not in filename and \
+           filename.rsplit('.', 1)[1].lower() in EXTENSIONS
+
+
 jwt = JWTManager(app=app)
+marshmallow_app = Marshmallow(app)
 
 
 @app.route('/register', methods=["POST"])
@@ -51,6 +65,19 @@ def register():
     for interest in interests:
         if not data_base.has_tag(interest):
             return "Логическая ошибка! Такого быть не должно! Отсутствует контроль за интересами пользователя!", 400
+    if "files[]" not in request.files:
+        return "Аватарка не была добавлена!", 400
+    files = request.files.getlist('files[]')
+    if len(files) != 0:
+        return "Должен быть передан ровно один файл!", 400
+    if files[0] and is_name_allowed(files[0].filename):
+        try:
+            filename = secure_filename(files[0].filename)
+            files[0].save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        except:
+            return "Ошибка во время обработки файла!", 400
+    else:
+        return "Запрещено давать файлу такое имя!", 400
     interests = get_random_preferences(5)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
@@ -202,12 +229,12 @@ def friends():
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
-            "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
-            "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                          data_base.get_incoming_requests(user.id))),
-            "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                          data_base.get_outgoing_requests(user.id)))
-        }, 200
+                   "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
+                   "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                                 data_base.get_incoming_requests(user.id))),
+                   "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                                 data_base.get_outgoing_requests(user.id)))
+               }, 200
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)
