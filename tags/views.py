@@ -14,11 +14,11 @@ def get_all_interests():
 @jwt_required()
 def edit_interest():
     email: str = get_jwt_identity()
-    if email != 'ADMIN@ADMIN.su':
-        return "Только Админ может редактировать тэги!", 400
-    if not data_base.get_user_by_email_or_none(email).is_token_actual:
+    user = data_base.get_user_by_email_or_none(email)
+    if not user.is_token_actual:
         return "Token is not actual!", 401
-
+    if not user.is_admin:
+        return "Только Админ может редактировать тэги!", 400
     new_interests = request.json.get("new_interests", "")
     edit_interests = request.json.get("edit_interests", "")
     if new_interests == "" or edit_interests == "":
@@ -50,3 +50,49 @@ def edit_interest():
         except TypeError:
             return "Неверный тип тэга!", 400
     return "OK", 200
+
+
+@app.route('/add_admin', methods=["POST"])
+@jwt_required()
+def add_admin():
+    email: str = get_jwt_identity()
+    user = data_base.get_user_by_email_or_none(email)
+    if not user.is_token_actual:
+        return "Token is not actual!", 401
+    if not user.is_admin:
+        return "Только Админ может добавлять новых администраторов!", 400
+    new_admin_id = request.json.get("id", "")
+    try:
+        new_admin_id = int(new_admin_id)
+    except ValueError:
+        return "ID не является числом!", 400
+    user = data_base.get_user_by_index_or_none(new_admin_id)
+    if user is None:
+        return "Не существует пользователя с таким ID!", 500
+    if user.is_admin or user.email == 'ADMIN@ADMIN.su':
+        return "Указанный пользователь уже является администратором!", 500
+    data_base.set_user_admin_as(user_id=new_admin_id, status=True)
+
+
+@app.route('/delete_admin', methods=["POST"])
+@jwt_required()
+def delete_admin():
+    email: str = get_jwt_identity()
+    user = data_base.get_user_by_email_or_none(email)
+    if not user.is_token_actual:
+        return "Token is not actual!", 401
+    if not user.is_admin:
+        return "Только Админ может удалять администраторов!", 400
+    new_admin_id = request.json.get("id", "")
+    try:
+        new_admin_id = int(new_admin_id)
+    except ValueError:
+        return "ID не является числом!", 400
+    user = data_base.get_user_by_index_or_none(new_admin_id)
+    if user is None:
+        return "Не существует пользователя с таким ID!", 500
+    if not user.is_admin:
+        return "Указанный пользователь не является администратором!", 500
+    if user.email == 'ADMIN@ADMIN.su':
+        return "Невозможно удалить ADMIN@ADMIN.su!", 500
+    data_base.set_user_admin_as(user_id=new_admin_id, status=False)  # TODO add to database ADMIN@ADMIN.su
