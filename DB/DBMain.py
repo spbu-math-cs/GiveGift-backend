@@ -133,6 +133,7 @@ class UserDatabase:
             user.email = email
             user.birth_date = birth_date
             user.last_time_seen = datetime.datetime.now()
+            user.is_admin = False
             self.db.session.add(user)
             self.db.session.commit()
 
