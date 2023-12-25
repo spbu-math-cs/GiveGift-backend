@@ -3,7 +3,6 @@ from typing import List, Optional
 from g4f import ChatCompletion
 
 
-
 def generate_link(title: str, min_budget: int, max_budget: int) -> Optional[str]:
     # noinspection IncorrectFormatting
     return f"https://www.wildberries.ru/" \

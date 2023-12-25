@@ -94,4 +94,4 @@ def delete_admin():
         return "Указанный пользователь не является администратором!", 500
     if user.email == 'ADMIN@ADMIN.su':
         return "Невозможно удалить ADMIN@ADMIN.su!", 500
-    data_base.set_user_admin_as(user_id=new_admin_id, status=False)  # TODO add to database ADMIN@ADMIN.su
+    data_base.set_user_admin_as(user_id=new_admin_id, status=False)

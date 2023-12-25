@@ -7,6 +7,7 @@ from datetime import timedelta, datetime, timezone
 from werkzeug.utils import secure_filename
 from dateutil import parser
 from flask import request, jsonify
+# noinspection IncorrectFormatting
 from flask_jwt_extended import JWTManager, create_access_token, unset_jwt_cookies,\
     get_jwt_identity, get_jwt, jwt_required
 
@@ -23,6 +24,7 @@ EXTENSIONS = ['png', 'bmp', 'jpg']
 
 def is_name_allowed(filename: str) -> bool:
     print(filename.rsplit('.', 1)[1].lower())
+    # noinspection IncorrectFormatting
     return '.' in filename and '/' not in filename and '\\' not in filename and \
            filename.rsplit('.', 1)[1].lower() in EXTENSIONS
 
@@ -30,6 +32,7 @@ def is_name_allowed(filename: str) -> bool:
 jwt = JWTManager(app=app)
 
 
+# noinspection IncorrectFormatting
 @app.route('/register', methods=["POST"])
 @jwt_required(optional=True)
 def register():
@@ -46,8 +49,8 @@ def register():
     if not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Введите корректный адрес электронной почты!", 400
     if not fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
-               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
+        return "Введите корректный пароль! Пароль должен содержать прописные и строчные"\
+               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из"\
                "восьми символов!", 400
     if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 400
@@ -90,6 +93,7 @@ def add_image():
     if len(files) != 1:
         return "Должен быть передан ровно один файл!", 400
     if files[0] and is_name_allowed(files[0].filename):
+        # noinspection PyBroadException
         try:
             filename = secure_filename(files[0].filename)
             files[0].save(path.abspath(
