@@ -1,10 +1,9 @@
+import base64
 from json import dumps
-from os import path
+from os import path, remove
 from random import randint, sample
 from re import fullmatch
-from flask import send_file
 from datetime import timedelta, datetime, timezone
-from werkzeug.utils import secure_filename
 from dateutil import parser
 from flask import request, jsonify
 # noinspection IncorrectFormatting
@@ -42,6 +41,7 @@ def register():
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
+    avatar = request.json.get("avatar", "")
     if nickname == "" or email == "" or password == "":
         return "Заполните все поля!", 400
     if len(nickname) < 2:
@@ -69,78 +69,15 @@ def register():
     interests = get_random_preferences(5)
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
+    user_id = data_base.get_user_by_email_or_none(email).id
+    set_avatar(avatar=avatar, user_id=user_id)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
             return "OK", 200
     access_token = create_access_token(identity=email)
-    data_base.set_user_token_as(data_base.get_user_by_email_or_none(email).id, True)
+    data_base.set_user_token_as(user_id, True)
     return {"access_token": access_token}, 200
-
-
-@app.route('/add_image', methods=["POST"])
-@jwt_required()
-def add_image():
-    if email := get_jwt_identity():
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-    user = data_base.get_user_by_email_or_none(email)
-    if user is None:
-        return "Не существует такого пользователя!", 400
-    if "files[]" not in request.files:
-        return "Аватарка не была добавлена!", 400
-    files = request.files.getlist('files[]')
-    if len(files) != 1:
-        return "Должен быть передан ровно один файл!", 400
-    if files[0] and is_name_allowed(files[0].filename):
-        # noinspection PyBroadException
-        try:
-            filename = secure_filename(files[0].filename)
-            files[0].save(path.abspath(
-                path.join(app.config['UPLOAD_FOLDER'],
-                          str(user.id) + "." + filename.rsplit('.', 1)[1].lower())))
-            # add name for user
-            return "OK", 200
-        except:
-            return "Ошибка во время обработки файла!", 400
-    else:
-        print(files)
-        return "Запрещено давать файлу такое имя!", 400
-
-
-@app.route('/send_image/<i>', methods=["GET"])
-@jwt_required(optional=True)
-def send_image(i):
-    email = get_jwt_identity()
-    try:
-        index = int(i)
-    except ValueError:
-        return "Некорректный запрос!", 500
-    if email is None:
-        if index == 0:
-            return "Зарегистрируйтесь или войдите в систему!", 500
-        if not data_base.get_user_by_index_or_none(index):
-            return "Пользователь с таким именем не найден!", 400
-    else:
-        if not data_base.get_user_by_email_or_none(email).is_token_actual:
-            return "Token is not actual", 401
-        user = data_base.get_user_by_email_or_none(email)
-        if user is None:
-            return "Не существует такого пользователя!", 400
-        if index != 0:
-            if not data_base.get_user_by_index_or_none(index):
-                return "Пользователь с таким именем не найден!", 400
-        else:
-            index = user.id
-    for extension in EXTENSIONS:
-        file_path = path.abspath(
-            path.join(app.config['UPLOAD_FOLDER'], str(index) + "." + extension))
-        if path.exists(file_path):
-            return send_file(file_path), 200
-    file_path = path.abspath(path.join(app.config['UPLOAD_FOLDER'], "default_image.jpg"))
-    if path.exists(file_path):
-        return send_file(file_path), 200
-    return "Default file not found!", 400
 
 
 def get_random_preferences(num_of_preferences) -> [str]:
@@ -177,13 +114,13 @@ def set_info():
     birth_date = request.json.get("birth_date", "")
     about = request.json.get("about", "")
     interests = request.json.get("interests", "")
+    avatar = request.json.get("avatar", "")
     if email == "" or not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Заполните поле email!", 400
     if user_id == "":
         return "Введённый id пуст!", 400
     if data_base.get_user_by_index_or_none(user_id) is None:
         return "Нет пользователя с данным id!", 400
-
     if birth_date != "" and birth_date is not None:
         try:
             birth_date = parser.parse(birth_date).date()
@@ -191,7 +128,6 @@ def set_info():
             return "Логическая ошибка! Дата не парсится!", 400
     if type(interests) is not list:
         return "Логическая ошибка! Список не парсится!", 400
-
     for interest in interests:
         if not data_base.has_tag(interest):
             return "К сожалению, выбранный тег не поддерживается!", 400
@@ -199,12 +135,30 @@ def set_info():
         user_id = int(user_id)
     except ValueError:
         return "Вместо id подали не число!"
+    set_avatar(avatar, user_id)
     data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date)
     return "OK", 200
 
 
+def set_avatar(avatar, user_id):
+    if avatar == "":
+        file_path = path.join(app.config['UPLOAD_FOLDER'], str(user_id) + ".jpg")
+        if path.exists(file_path):
+            remove(file_path)
+    else:
+        binary_image = base64.decodebytes(bytes(avatar, 'utf-8'))
+        with open(path.join(app.config['UPLOAD_FOLDER'], str(user_id) + ".jpg"), "wb") as file:
+            file.write(binary_image)
+
+
 def get_safe_user_info_simple(user) -> dict:
+    avatar = ""
+    file_path = path.join(app.config['UPLOAD_FOLDER'], str(user.id) + ".jpg")
+    if path.exists(file_path):
+        with open(path.join(app.config['UPLOAD_FOLDER'], str(user.id) + ".jpg"), "rb") as file:
+            binary_image: bytes = file.read()
+            avatar: str = base64.encodebytes(binary_image).decode('utf-8')
     return {
         "id": str(user.id),
         "nickname": str(user.nickname),
@@ -212,7 +166,8 @@ def get_safe_user_info_simple(user) -> dict:
         "about": str(user.about),
         "birth_date": user.birth_date,  # strftime("%d-%m-%Y")
         "interests": data_base.get_user_tags(user.id),
-        "is_admin": str(user.is_admin)
+        "is_admin": str(user.is_admin),
+        "avatar": avatar
     }
 
 
