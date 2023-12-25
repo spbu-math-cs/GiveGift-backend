@@ -75,3 +75,4 @@ def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, 
         return [get_image_link(id_and_name[0]), id_and_name[1]]
     except:
         pass
+    return [None, None]
