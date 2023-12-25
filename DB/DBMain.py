@@ -548,3 +548,14 @@ class UserDatabase:
         with self.app.app_context():
             messages = self.get_messages(user_id)
             return message_id in list(map(lambda x: x.id, messages))
+
+    @_raises_database_exit_exception
+    def set_up_db(self):
+        with self.app.app_context():
+            self.create_tables()
+            admin: User = self.get_user_by_email_or_none('ADMIN@ADMIN.su')
+            if admin is None:
+                self.create_user('ADMIN', 'ADMIN@ADMIN.su', "v?Uf(1Pxpi£Ff=[k?_F4C!uM&£c'Z3aF:Y00!n2$l+Q7)X", 'ADMIN',
+                                 date(2000, 1, 1), [])
+                admin = self.get_user_by_email_or_none('ADMIN@ADMIN.su')
+                self.set_user_admin_as(admin.id, True)
