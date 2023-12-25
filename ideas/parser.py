@@ -66,7 +66,7 @@ def get_image_link(product_id):
 
 
 # noinspection PyBroadException
-def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool) -> list[str | Any]:
+def get_image_link_or_none(product_name: str, min_budget: int, max_budget: int, adult: bool):
     try:
         id_and_name = get_id_and_name(get_query_link(product_name, min_budget, max_budget), adult)
         return [get_image_link(id_and_name[0]), id_and_name[1]]
