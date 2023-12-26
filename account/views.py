@@ -17,7 +17,7 @@ app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[randint(0, 9)] for _ in ran
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 app.config["UPLOAD_FOLDER"] = "images"
-app.config["MAX_CONTENT_LENGTH"] = 10 ** 10
+app.config["MAX_CONTENT_LENGTH"] = 640 * 480
 EXTENSIONS = ['png', 'bmp', 'jpg']
 
 jwt = JWTManager(app=app)
@@ -62,7 +62,7 @@ def register():
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     user_id = data_base.get_user_by_email_or_none(email).id
-    upload_avatar(avatar=avatar, user_id=user_id)
+    upload_avatar(avatar, user_id)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
@@ -131,13 +131,13 @@ def set_info():
 
     data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date)
-    return "OK", 200
 
 
-def upload_avatar(avatar, user_id):
-    if avatar != "":
-        binary_image = base64.decodebytes(bytes(avatar, 'utf-8'))
-        with open(path.join(app.config['UPLOAD_FOLDER'], str(user_id) + ".jpg"), "wb") as file:
+def upload_avatar(avatar_base64, user_id):
+    print(user_id)
+    if avatar_base64 != "":
+        binary_image = base64.decodebytes(bytes(avatar_base64, 'utf-8'))
+        with open(path.join(app.config['UPLOAD_FOLDER'], f'{user_id}.jpg'), "wb") as file:
             file.write(binary_image)
 
 
@@ -179,7 +179,7 @@ def get_account_info():
         if not data_base.get_user_by_email_or_none(email).is_token_actual:
             return "Token is not actual", 401
     if request.method == 'POST':
-        return set_info()
+        set_info()
     user = data_base.get_user_by_email_or_none(email)
     return get_safe_user_info(user), 200
 
