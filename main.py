@@ -12,5 +12,4 @@ if __name__ == "__main__":
     app = None
     exec("from core import app")
     # noinspection PyUnresolvedReferences
-    app.run(debug=True,  # ssl_context='adhoc' DO NOT CHANGE THIS LINE!!!
-            )
+    app.run(debug=True)
