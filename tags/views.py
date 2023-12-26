@@ -46,7 +46,7 @@ def edit_interest():
             if new_interest != "":
                 data_base.add_tag(new_interest)
             return "OK", 200
-        except TypeError:
+        except ValueError:
             return "Неверный тип тэга!", 400
     return "OK", 200
 
