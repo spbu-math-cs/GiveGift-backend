@@ -17,7 +17,7 @@ app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[randint(0, 9)] for _ in ran
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 app.config["UPLOAD_FOLDER"] = "images"
-app.config["MAX_CONTENT_LENGTH"] = 640 * 480
+app.config["MAX_CONTENT_LENGTH"] = 16 * 1000 * 1000
 EXTENSIONS = ['png', 'bmp', 'jpg']
 
 jwt = JWTManager(app=app)
@@ -41,9 +41,9 @@ def register():
     if not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Введите корректный адрес электронной почты!", 400
     if not fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
-               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
-               "восьми символов!", 400
+        return """Введите корректный пароль!
+        Пароль должен содержать прописные и строчные буквы латинского алфавита, цифры.
+        Пароль должен состоять не менее чем из восьми символов!""", 400
     if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 400
     if birth_date != "":
@@ -145,13 +145,13 @@ def get_safe_user_info_simple(user) -> dict:
     avatar_filename = f'{user.id}.jpg' if path.exists(path.join(app.config['UPLOAD_FOLDER'], f'{user.id}.jpg')) else ""
 
     return {
-        "id": str(user.id),
-        "nickname": str(user.nickname),
-        "email": str(user.email),
-        "about": str(user.about),
+        "id": user.id,
+        "nickname": user.nickname,
+        "email": user.email,
+        "about": user.about,
         "birth_date": user.birth_date,  # strftime("%d-%m-%Y")
         "interests": data_base.get_user_tags(user.id),
-        "is_admin": str(user.is_admin),
+        "is_admin": user.is_admin,
         "avatar": avatar_filename
     }
 
@@ -222,12 +222,12 @@ def friends():
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
-                   "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
-                   "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                                 data_base.get_incoming_requests(user.id))),
-                   "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                                 data_base.get_outgoing_requests(user.id)))
-               }, 200
+            "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
+            "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_incoming_requests(user.id))),
+            "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_outgoing_requests(user.id)))
+        }, 200
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)

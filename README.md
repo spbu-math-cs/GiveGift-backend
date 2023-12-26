@@ -116,11 +116,22 @@
         "about": "...",
         "birth_date": "...",
         "interests": "[...]",
-        "avatar": "..."
+        "avatar": <BASE64_IMG>
     }
    ```
    #### Вывод
-   _Сообщение об успешном изменении данных, иначе сообщение об ошибке_
+   _Измененные данные аккаунта:_
+    ``` json
+    {
+        "id": "...",
+        "nickname": "...",
+        "email": "...",
+        "about": "...",
+        "birth_date": "...",
+        "interests": "[...]",
+        "avatar": <IMG_LINK>
+    }
+   ```
 
 * ### `/get_user_info/:id`, `GET` `jwt_required optional`
   _Получение информации о пользователе по id_
