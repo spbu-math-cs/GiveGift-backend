@@ -1,6 +1,6 @@
 import base64
 from json import dumps
-from os import path, remove
+from os import path
 from random import randint, sample
 from re import fullmatch
 from datetime import timedelta, datetime, timezone
@@ -17,7 +17,7 @@ app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[randint(0, 9)] for _ in ran
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 app.config["UPLOAD_FOLDER"] = "images"
-app.config["MAX_CONTENT_LENGTH"] = 10**10
+app.config["MAX_CONTENT_LENGTH"] = 10 ** 10
 EXTENSIONS = ['png', 'bmp', 'jpg']
 
 jwt = JWTManager(app=app)
@@ -134,7 +134,6 @@ def set_info():
     return "OK", 200
 
 
-# TODO: посмотришь
 def upload_avatar(avatar, user_id):
     if avatar != "":
         binary_image = base64.decodebytes(bytes(avatar, 'utf-8'))
@@ -223,12 +222,12 @@ def friends():
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
-            "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
-            "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                          data_base.get_incoming_requests(user.id))),
-            "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                          data_base.get_outgoing_requests(user.id)))
-        }, 200
+                   "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
+                   "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                                 data_base.get_incoming_requests(user.id))),
+                   "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                                 data_base.get_outgoing_requests(user.id)))
+               }, 200
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)
