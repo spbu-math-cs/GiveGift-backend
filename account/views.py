@@ -7,7 +7,7 @@ from datetime import timedelta, datetime, timezone
 from dateutil import parser
 from flask import request, jsonify
 # noinspection IncorrectFormatting
-from flask_jwt_extended import JWTManager, create_access_token, unset_jwt_cookies,\
+from flask_jwt_extended import JWTManager, create_access_token, unset_jwt_cookies, \
     get_jwt_identity, get_jwt, jwt_required
 
 from DB import data_base
@@ -17,16 +17,8 @@ app.config["JWT_SECRET_KEY"] = ''.join(["0123456789"[randint(0, 9)] for _ in ran
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
 # app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=1) для теста обновления токена
 app.config["UPLOAD_FOLDER"] = "images"
-app.config["MAX_CONTENT_LENGTH"] = 640 * 480
+app.config["MAX_CONTENT_LENGTH"] = 10**10
 EXTENSIONS = ['png', 'bmp', 'jpg']
-
-
-def is_name_allowed(filename: str) -> bool:
-    print(filename.rsplit('.', 1)[1].lower())
-    # noinspection IncorrectFormatting
-    return '.' in filename and '/' not in filename and '\\' not in filename and \
-           filename.rsplit('.', 1)[1].lower() in EXTENSIONS
-
 
 jwt = JWTManager(app=app)
 
@@ -49,8 +41,8 @@ def register():
     if not fullmatch("\\S+@\\S+\\.\\S+", email):
         return "Введите корректный адрес электронной почты!", 400
     if not fullmatch("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*(\\W|_)).{8,}$", password):
-        return "Введите корректный пароль! Пароль должен содержать прописные и строчные"\
-               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из"\
+        return "Введите корректный пароль! Пароль должен содержать прописные и строчные" \
+               "буквы латинского алфавита, цифры. Пароль должен состоять не менее чем из" \
                "восьми символов!", 400
     if data_base.get_user_by_email_or_none(email=email):
         return "Пользователь с таким email уже существует!", 400
@@ -70,7 +62,7 @@ def register():
     data_base.create_user(nickname=nickname, email=email, password=password, about=about, birth_date=birth_date,
                           interests=interests)
     user_id = data_base.get_user_by_email_or_none(email).id
-    set_avatar(avatar=avatar, user_id=user_id)
+    upload_avatar(avatar=avatar, user_id=user_id)
     if current_email := get_jwt_identity():
         user_or_none = data_base.get_user_by_email_or_none(current_email)
         if user_or_none.is_token_actual:
@@ -135,30 +127,24 @@ def set_info():
         user_id = int(user_id)
     except ValueError:
         return "Вместо id подали не число!"
-    set_avatar(avatar, user_id)
+    upload_avatar(avatar, user_id)
+
     data_base.set_to_user_with_id(user_id=user_id, email=email, about=about, interests=interests,
                                   nickname=nickname, birth_date=birth_date)
     return "OK", 200
 
 
-def set_avatar(avatar, user_id):
-    if avatar == "":
-        file_path = path.join(app.config['UPLOAD_FOLDER'], str(user_id) + ".jpg")
-        if path.exists(file_path):
-            remove(file_path)
-    else:
+# TODO: посмотришь
+def upload_avatar(avatar, user_id):
+    if avatar != "":
         binary_image = base64.decodebytes(bytes(avatar, 'utf-8'))
         with open(path.join(app.config['UPLOAD_FOLDER'], str(user_id) + ".jpg"), "wb") as file:
             file.write(binary_image)
 
 
 def get_safe_user_info_simple(user) -> dict:
-    avatar = ""
-    file_path = path.join(app.config['UPLOAD_FOLDER'], str(user.id) + ".jpg")
-    if path.exists(file_path):
-        with open(path.join(app.config['UPLOAD_FOLDER'], str(user.id) + ".jpg"), "rb") as file:
-            binary_image: bytes = file.read()
-            avatar: str = base64.encodebytes(binary_image).decode('utf-8')
+    avatar_filename = f'{user.id}.jpg' if path.exists(path.join(app.config['UPLOAD_FOLDER'], f'{user.id}.jpg')) else ""
+
     return {
         "id": str(user.id),
         "nickname": str(user.nickname),
@@ -167,7 +153,7 @@ def get_safe_user_info_simple(user) -> dict:
         "birth_date": user.birth_date,  # strftime("%d-%m-%Y")
         "interests": data_base.get_user_tags(user.id),
         "is_admin": str(user.is_admin),
-        "avatar": avatar
+        "avatar": avatar_filename
     }
 
 
@@ -237,12 +223,12 @@ def friends():
     user = data_base.get_user_by_email_or_none(email)
     if request.method == "GET":
         return {
-                   "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
-                   "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                                 data_base.get_incoming_requests(user.id))),
-                   "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
-                                                 data_base.get_outgoing_requests(user.id)))
-               }, 200
+            "friends": list(map(lambda user_id: get_user_info_by_id(user_id), data_base.get_friends(user.id))),
+            "incoming_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_incoming_requests(user.id))),
+            "outgoing_requests": list(map(lambda user_id: get_user_info_by_id(user_id),
+                                          data_base.get_outgoing_requests(user.id)))
+        }, 200
     friend_id = request.json.get("friend_id", "")
     try:
         friend_id = int(friend_id)

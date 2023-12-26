@@ -15,3 +15,7 @@ app.register_blueprint(blueprint=account_blueprint)
 from ideas import idea as idea_blueprint
 
 app.register_blueprint(blueprint=idea_blueprint)
+
+from storage import storage as storage_blueprint
+
+app.register_blueprint(blueprint=storage_blueprint)
